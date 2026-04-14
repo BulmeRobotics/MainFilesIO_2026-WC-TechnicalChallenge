@@ -111,6 +111,8 @@ int main(void) {
 
   UI.ConnectPointer(&currentMenuState, &cs, &mapper, &cam);
     //Buttons
+  pinMode(BUTTON_BLACK, INPUT);
+  pinMode(BUTTON_GRAY, INPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTON_BLACK), ISR_BTN_BLACK, RISING);
 	attachInterrupt(digitalPinToInterrupt(BUTTON_GRAY), ISR_BTN_GRAY, RISING);
   lastButtonPressGray = millis();
@@ -452,7 +454,8 @@ void ISR_BTN_BLACK() {
   if(currentMenuState != RobotState::RUN){
     currentMenuState = RobotState::RUN;
     currentRunState = RunState::INITIAL;
-  } else if(currentMenuState == RobotState::RUN && currentRunState != RunState::INITIAL){
+  }
+  else if(currentMenuState == RobotState::RUN && currentRunState != RunState::INITIAL){
     if(_CHECKPOINT == ErrorCodes::OK){
       _CHECKPOINT = ErrorCodes::stop;
       currentRunState = RunState::CHECKPOINT_RESET;
