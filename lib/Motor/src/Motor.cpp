@@ -13,7 +13,7 @@
 #endif
 volatile uint64_t counter = 0;  // counter for the encoder
 // Function that is called by the interrupt; increases the counter by 1
-void encoder_ISR(void) {
+void encoderISR(void) {
 	counter++;
 }
 
@@ -70,7 +70,7 @@ float Motor::GetEncoderDistance(void) {
 }
 
 void Motor::EnableEncoder(void) {
-	attachInterrupt(digitalPinToInterrupt(encoderPhaseA), encoder_ISR, RISING);
+	attachInterrupt(digitalPinToInterrupt(encoderPhaseA), encoderISR, RISING);
 }
 
 void Motor::DisableEncoder(void) {

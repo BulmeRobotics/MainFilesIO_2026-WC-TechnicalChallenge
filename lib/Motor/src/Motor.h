@@ -14,7 +14,7 @@
 #include "CustomDatatypes.h"
 
 // Encoder ISR - outside class
-void encoder_ISR(void);
+void encoderISR(void);
 
 #ifdef _MSC_VER
     #pragma endregion
@@ -41,7 +41,7 @@ class Motor {
         void InitDriverPins(uint8_t pinA, uint8_t pinB);
 
     public:
-        //----Definitions----
+        //----Constants----
         static constexpr uint8_t DRIVER_A = 0;
         static constexpr uint8_t DRIVER_B = 1;
 
