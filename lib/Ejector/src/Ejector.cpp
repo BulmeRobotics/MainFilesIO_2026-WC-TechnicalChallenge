@@ -41,7 +41,7 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 
 	if(remainingPacks <= 0) return ErrorCodes::empty;
 
-	//extract packs
+	// extract packs
 	uint8_t rLeft = remainingPacks >> 4;
 	uint8_t rRight = remainingPacks & 0x0f;
 	
@@ -49,7 +49,7 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 		uint8_t priAmount = min(amount, rLeft);
 		uint8_t secAmount = min((uint8_t)(amount - priAmount), rRight);
 
-		//eject left
+		// eject left
 		for (uint8_t i = 0; i < priAmount; i++)
 		{
 			servoLeft.write(POS_OPEN_LEFT);
@@ -58,7 +58,7 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 			delay(DELAY_CLOSE);
 		}
 		if(secAmount>0){
-			//eject remaining right
+			// eject remaining right
 			robot->turn180Degree();
 			for (uint8_t i = 0; i < secAmount; i++) {
 				servoRight.write(POS_OPEN_RIGHT);
@@ -76,7 +76,7 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 		uint8_t priAmount = min(amount, rRight);
 		uint8_t secAmount = min((uint8_t)(amount - priAmount), rLeft);
 
-		//eject right
+		// eject right
 		for (uint8_t i = 0; i < priAmount; i++)
 		{
 			servoRight.write(POS_OPEN_RIGHT);
@@ -85,7 +85,7 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 			delay(DELAY_CLOSE);
 		}
 		if(secAmount>0){
-			//eject remaining left
+			// eject remaining left
 			robot->turn180Degree();
 			for (uint8_t i = 0; i < secAmount; i++) {
 				servoLeft.write(POS_OPEN_LEFT);
