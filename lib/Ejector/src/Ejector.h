@@ -36,8 +36,8 @@ class Ejector {
         static constexpr uint16_t DELAY_OPEN    = 500;
         static constexpr uint16_t DELAY_CLOSE   = 250;
 
-        //----Variables----
-        uint8_t remainingPacks;    //b0-3 right, b4-7 left
+        //----Members----
+        uint8_t remainingPacks;    // b0-3 right, b4-7 left
 
         //----Objects----
         Servo servoLeft;

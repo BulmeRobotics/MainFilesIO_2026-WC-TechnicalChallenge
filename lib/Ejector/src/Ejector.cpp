@@ -9,6 +9,9 @@
 #include "Ejector.h"
 #include <Driving.h>
 
+#ifdef _MSC_VER
+    #pragma region Constructor //--------------------------------------------------------------------------------------------------
+#endif
 Ejector::Ejector(uint8_t rescuePacks) {
 	if(rescuePacks > 14) rescuePacks = 14;
 	rescuePacks /= 2;
@@ -17,10 +20,11 @@ Ejector::Ejector(uint8_t rescuePacks) {
 }
 
 #ifdef _MSC_VER
+    #pragma endregion
     #pragma region Init //-------------------------------------------------------------------------------------------------------
 #endif
 void Ejector::Init(Driving* robot) {
-    p_driving = robot;
+	p_driving = robot;
 	pinMode(PIN_SERVO_LEFT, OUTPUT);
 	pinMode(PIN_SERVO_RIGHT, OUTPUT);
 	
