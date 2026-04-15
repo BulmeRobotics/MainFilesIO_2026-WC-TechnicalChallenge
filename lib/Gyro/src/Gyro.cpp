@@ -219,7 +219,7 @@ int8_t Gyro::GetTemp(void) {
     #pragma endregion
     #pragma region Private //----------------------------------------------------------------------------------------------------
 #endif
-//Private method to get the raw angle measurement from the sensor; NOT optimal to get the angle for the main program
+// Private method to get the raw angle measurement from the sensor; NOT optimal to get the angle for the main program
 float Gyro::GetRawAngle(GyroAxles axis) {
 	sensors_event_t event;
 	bno.getEvent(&event);

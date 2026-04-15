@@ -27,7 +27,7 @@ class Gyro {
         //----Object----
         Adafruit_BNO055 bno = Adafruit_BNO055(-1, I2C_ADDRESS_GYRO, &Wire);
 
-        //----Variables----
+        //----Members----
         float diff_x, diff_y, diff_z;
 
         //----Methods----
