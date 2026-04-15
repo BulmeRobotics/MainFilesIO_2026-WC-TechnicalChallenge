@@ -21,22 +21,23 @@
 #endif
 class Gyro {
     private:
-        // Configuration
+        //----Configuration----
         static constexpr uint8_t I2C_ADDRESS_GYRO = 0x28;
 
-        // Object
+        //----Object----
         Adafruit_BNO055 bno = Adafruit_BNO055(-1, I2C_ADDRESS_GYRO, &Wire);
 
-        // Variables
+        //----Variables----
         float diff_x, diff_y, diff_z;
 
-        // Methods
+        //----Methods----
         float GetRawAngle(GyroAxles axis);
+
     public:
-        // Constructor
+        //----Constructor----
         Gyro() = default;
 
-        // Methods
+        //----Methods----
         /**
         * @brief  Initializes and configures the IMU (Gyro).
         * @return OK if the sensor was intitalized succesfully.
@@ -52,15 +53,21 @@ class Gyro {
         float GetAngle(GyroAxles axis);
 
         /**
-        * @brief  Overloaded method to calculate values suiting for control loops in the struct GyroData.
-        *         Includes absolute angle, cartesian angle, shortest direction and angleError. A measurement
-        *         will be done if an axis is given, if a second angle is given it will be only calculated.
+        * @brief  Calculates control loop values from an existing angle measurement.
+        *         Stores absolute angle, cartesian angle, angular error and turn direction in 'data'.
         * @param  targetAngle target angular value of the control loop (in degrees).
-        * @param  axis enum to specify the axis (Axis_X, Axis_Y, Axis_Z). A measurement will be done.
-        * @param actualAngle if instead of an axis an existing angle is given, the data will only be calculated
-        * @return current angle in degrees (0-360°), the caluclated data is stored in 'data'.
+        * @param  actualAngle current angle to calculate from (in degrees).
+        * @return absolute angle in degrees (0-360°).
         */
         float GetAngleAdvanced(float targetAngle, float actualAngle);
+
+        /**
+        * @brief  Calculates control loop values by reading the specified IMU axis.
+        *         Stores absolute angle, cartesian angle, angular error and turn direction in 'data'.
+        * @param  targetAngle target angular value of the control loop (in degrees).
+        * @param  axis enum to specify the axis to measure (Axis_X, Axis_Y, Axis_Z).
+        * @return absolute angle in degrees (0-360°).
+        */
         float GetAngleAdvanced(float targetAngle, GyroAxles axis);
 
         /**
@@ -71,12 +78,16 @@ class Gyro {
         float GetAngleFromOrientation(Orientations orientation);
 
         /**
-        * @brief  Overloaded method to get the orientation (NESW) from an angular value.
+        * @brief  Returns the orientation (NESW) corresponding to a given angular value.
         * @param  angle angular value in degrees (0-360°).
-        *         If no parameter is given, the angle is measured by the IMU.
-        * @return corresponding orientation (NESW) (enum).
+        * @return corresponding orientation (North, East, South, West).
         */
         Orientations GetOrientationFromAngle(float angle);
+
+        /**
+        * @brief  Returns the current orientation (NESW) by reading the IMU (Axis_X).
+        * @return corresponding orientation (North, East, South, West).
+        */
         Orientations GetOrientationFromAngle(void);
 
         /**

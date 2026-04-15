@@ -5,7 +5,7 @@
 * @details: .cpp file for the Gyro (IMU)
 */
 
-// Libraries
+//----Libraries----
 #include "Gyro.h"
 
 #ifdef _MSC_VER
