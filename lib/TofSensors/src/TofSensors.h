@@ -27,6 +27,11 @@ static constexpr uint8_t RANGING_BUDGET_MID   = 10;
 class TofParent {
     public:
         //----Constructor----
+        /**
+        * @brief  Constructs a ToF sensor base object.
+        * @param  i2cAddress  I2C address to assign to this sensor.
+        * @param  xshutPin    GPIO pin connected to the sensor's XSHUT line.
+        */
         TofParent(uint8_t i2cAddress, uint8_t xshutPin);
 
         //----Destructor----
@@ -43,8 +48,10 @@ class TofParent {
         * @brief  Checks if a new measurement is available; if so, retrieves the data.
         * @return OK if no new data is available.
         *         NEW_DATA if data was retrieved and stored.
+        *         NO_NEW_DATA if the sensor is not ready yet.
         *         OUT_OF_RANGE if measurement was out of range.
         *         TIMEOUT if a timeout occurred.
+        *         ERROR if a sensor communication error occurred.
         */
         virtual ErrorCodes Read(void);
 
@@ -56,9 +63,10 @@ class TofParent {
 
         /**
         * @brief  Getter-method to get the status of the last measurement.
-        * @return VALID if the distance is not out of range or a timeout occurred.
+        * @return VALID if the measurement is within range and no timeout occurred.
         *         OUT_OF_RANGE if the measurement was out of range.
         *         TIMEOUT if the sensor is in a timeout.
+        *         ERROR if a sensor communication error occurred.
         */
         virtual TofStatus GetStatus(void);
 
@@ -130,21 +138,26 @@ class TofVL6180X : public TofParent {
 
     public:
         //----Constructor----
+        /**
+        * @brief  Constructs a VL6180X ToF sensor object.
+        * @param  i2cAddress  I2C address to assign to this sensor.
+        * @param  xshutPin    GPIO pin connected to the sensor's XSHUT line.
+        */
         TofVL6180X(uint8_t i2cAddress, uint8_t xshutPin);
 
         //----Methods----
         /**
-        * @brief  Initializes and configures the specific Time-of-Flight-Sensor.
+        * @brief  Initializes and configures the VL6180X sensor.
         * @return true if the sensor was initialized successfully.
         */
         bool Init(void) override;
 
         /**
         * @brief  Checks if a new measurement is available; if so, retrieves the data.
-        * @return OK if no new data is available.
-        *         NEW_DATA if data was retrieved and stored.
+        * @return NEW_DATA if data was retrieved and stored.
         *         OUT_OF_RANGE if measurement was out of range.
         *         TIMEOUT if a timeout occurred.
+        *         OK if no new data is available.
         */
         ErrorCodes Read(void) override;
 
@@ -155,16 +168,15 @@ class TofVL6180X : public TofParent {
         uint16_t GetRange(void) override;
 
         /**
-        * @brief  Stops the ranging of the Time-of-Flight-Sensor.
+        * @brief  Stops the ranging of the VL6180X sensor.
         * @return OK if the sensor was stopped successfully.
-        *         ERROR if something went wrong.
+        *         TIMEOUT if a timeout was detected on stop.
         */
         ErrorCodes Stop(void) override;
 
         /**
-        * @brief  Continues the ranging of the Time-of-Flight-Sensor.
-        * @return OK if the sensor is working correctly.
-        *         ERROR if something went wrong.
+        * @brief  Continues the ranging of the VL6180X sensor.
+        * @return OK always.
         */
         ErrorCodes Continue(void) override;
 };
@@ -180,41 +192,44 @@ class TofVL53L4CD : public TofParent {
 
     public:
         //----Constructor----
+        /**
+        * @brief  Constructs a VL53L4CD ToF sensor object.
+        * @param  i2cAddress  I2C address to assign to this sensor.
+        * @param  xshutPin    GPIO pin connected to the sensor's XSHUT line.
+        */
         TofVL53L4CD(uint8_t i2cAddress, uint8_t xshutPin);
 
         //----Methods----
         /**
-        * @brief  Initializes and configures the specific Time-of-Flight-Sensor.
+        * @brief  Initializes and configures the VL53L4CD sensor.
         * @return true if the sensor was initialized successfully.
         */
         bool Init(void) override;
 
         /**
         * @brief  Checks if a new measurement is available; if so, retrieves the data.
-        * @return OK if no new data is available.
-        *         NEW_DATA if data was retrieved and stored.
-        *         OUT_OF_RANGE if measurement was out of range.
-        *         TIMEOUT if a timeout occurred.
+        * @return NEW_DATA if data was retrieved and stored (both valid and out-of-range results).
+        *         NO_NEW_DATA if the sensor is not ready yet.
+        *         TIMEOUT if the sensor did not respond within the timeout window.
+        *         ERROR if a sensor communication error occurred.
         */
         ErrorCodes Read(void) override;
 
         /**
-        * @brief  Getter-method to get the value of the last measurement.
-        * @return Last measurement value (0-1023).
+        * @brief  Getter-method to get the value of the last measurement. Clears the new-data flag.
+        * @return Last measurement value in mm (INVALID_MEASUREMENT = 1023 if out of range).
         */
         uint16_t GetRange(void) override;
 
         /**
-        * @brief  Stops the ranging of the Time-of-Flight-Sensor.
-        * @return OK if the sensor was stopped successfully.
-        *         ERROR if something went wrong.
+        * @brief  Stops the ranging of the VL53L4CD sensor.
+        * @return OK always.
         */
         ErrorCodes Stop(void) override;
 
         /**
-        * @brief  Continues the ranging of the Time-of-Flight-Sensor.
-        * @return OK if the sensor is working correctly.
-        *         ERROR if something went wrong.
+        * @brief  Continues the ranging of the VL53L4CD sensor.
+        * @return OK always.
         */
         ErrorCodes Continue(void) override;
 };
@@ -241,6 +256,11 @@ class TofVL53L5CX : public TofParent {
 
     public:
         //----Constructor----
+        /**
+        * @brief  Constructs a VL53L5CX 8×8 ToF sensor object.
+        * @param  i2cAddress  I2C address to assign to this sensor.
+        * @param  xshutPin    GPIO pin connected to the sensor's XSHUT line.
+        */
         TofVL53L5CX(uint8_t i2cAddress, uint8_t xshutPin);
 
         //----Methods----
@@ -331,16 +351,17 @@ class TofSensors {
         /**
         * @brief  Getter-method to get the last range measurement of a Time-of-Flight-Sensor.
         * @param  sensor  enum to choose the sensor to get the value from.
-        * @return Last range measurement in mm.
+        * @return Last range measurement in mm. 0 if sensor type is unknown.
         */
         uint16_t GetRange(TofType sensor);
 
         /**
         * @brief  Getter-method to get the status of the last measurement of a Time-of-Flight-Sensor.
         * @param  sensor  enum to choose the sensor to get the value from.
-        * @return VALID if the distance is not out of range or a timeout occurred.
+        * @return VALID if the measurement is within range and no timeout occurred.
         *         OUT_OF_RANGE if the measurement was out of range.
-        *         TIMEOUT if the sensor is in a timeout.
+        *         TIMEOUT if the sensor is in a timeout or the sensor type is unknown.
+        *         ERROR if a sensor communication error occurred.
         */
         TofStatus GetStatus(TofType sensor);
 
