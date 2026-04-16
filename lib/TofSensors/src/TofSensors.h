@@ -60,21 +60,21 @@ class TofParent {
         *         OUT_OF_RANGE if the measurement was out of range.
         *         TIMEOUT if the sensor is in a timeout.
         */
-        virtual TofStatus GetStatus(void);
+        virtual TofStatus GetStatus(void) { return lastStatus; }
 
         /**
         * @brief  Method to check if a range value has yet been retrieved.
         * @return true if value is new.
         *         false if the value was already used.
         */
-        virtual bool IsDataNew(void);
+        virtual bool IsDataNew(void) { return newData; }
 
         /**
         * @brief  Method to check if a timeout has occurred.
         * @return true if a timeout occurred.
         *         false if no timeout occurred.
         */
-        virtual bool TimeoutOccured(void);
+        virtual bool TimeoutOccured(void) { return timeoutOccured; }
 
         /**
         * @brief  Stops the ranging of the sensor.
@@ -155,28 +155,6 @@ class TofVL6180X : public TofParent {
         uint16_t GetRange(void) override;
 
         /**
-        * @brief  Getter-method to get the status of the last measurement.
-        * @return VALID if the distance is not out of range or a timeout occurred.
-        *         OUT_OF_RANGE if the measurement was out of range.
-        *         TIMEOUT if the sensor is in a timeout.
-        */
-        TofStatus GetStatus(void) override;
-
-        /**
-        * @brief  Method to check if a range value has yet been retrieved.
-        * @return true if value is new.
-        *         false if the value was already used.
-        */
-        bool IsDataNew(void) override;
-
-        /**
-        * @brief  Method to check if a timeout has occurred.
-        * @return true if a timeout occurred.
-        *         false if no timeout occurred.
-        */
-        bool TimeoutOccured(void) override;
-
-        /**
         * @brief  Stops the ranging of the Time-of-Flight-Sensor.
         * @return OK if the sensor was stopped successfully.
         *         ERROR if something went wrong.
@@ -225,28 +203,6 @@ class TofVL53L4CD : public TofParent {
         * @return Last measurement value (0-1023).
         */
         uint16_t GetRange(void) override;
-
-        /**
-        * @brief  Getter-method to get the status of the last measurement.
-        * @return VALID if the distance is not out of range or a timeout occurred.
-        *         OUT_OF_RANGE if the measurement was out of range.
-        *         TIMEOUT if the sensor is in a timeout.
-        */
-        TofStatus GetStatus(void) override;
-
-        /**
-        * @brief  Method to check if a range value has yet been retrieved.
-        * @return true if value is new.
-        *         false if the value was already used.
-        */
-        bool IsDataNew(void) override;
-
-        /**
-        * @brief  Method to check if a timeout has occurred.
-        * @return true if a timeout occurred.
-        *         false if no timeout occurred.
-        */
-        bool TimeoutOccured(void) override;
 
         /**
         * @brief  Stops the ranging of the Time-of-Flight-Sensor.

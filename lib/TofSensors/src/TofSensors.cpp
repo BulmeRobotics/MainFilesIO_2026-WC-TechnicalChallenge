@@ -36,9 +36,6 @@ void TofParent::On(void) {
 bool TofParent::Init(void) { return false; }
 ErrorCodes TofParent::Read(void) { return ErrorCodes::ERROR; }
 uint16_t TofParent::GetRange(void) { return 0; }
-TofStatus TofParent::GetStatus(void) { return TofStatus::ERROR; }
-bool TofParent::IsDataNew(void) { return false; }
-bool TofParent::TimeoutOccured(void) { return false; }
 ErrorCodes TofParent::Stop(void) { return ErrorCodes::ERROR; }
 ErrorCodes TofParent::Continue(void) { return ErrorCodes::ERROR; }
 
@@ -90,18 +87,6 @@ ErrorCodes TofVL6180X::Read(void) {
 
 uint16_t TofVL6180X::GetRange(void) {
 	return lastMeasurement;
-}
-
-TofStatus TofVL6180X::GetStatus(void) {
-	return lastStatus;
-}
-
-bool TofVL6180X::IsDataNew(void) {
-	return newData;
-}
-
-bool TofVL6180X::TimeoutOccured(void) {
-	return timeoutOccured;
 }
 
 ErrorCodes TofVL6180X::Stop(void) {
@@ -267,18 +252,6 @@ ErrorCodes TofVL53L4CD::Read(void) {
 uint16_t TofVL53L4CD::GetRange(void) {
 	newData = false;
 	return lastMeasurement;
-}
-
-TofStatus TofVL53L4CD::GetStatus(void) {
-	return lastStatus;
-}
-
-bool TofVL53L4CD::IsDataNew(void) {
-	return newData;
-}
-
-bool TofVL53L4CD::TimeoutOccured(void) {
-	return timeoutOccured;
 }
 
 ErrorCodes TofVL53L4CD::Stop(void) {
