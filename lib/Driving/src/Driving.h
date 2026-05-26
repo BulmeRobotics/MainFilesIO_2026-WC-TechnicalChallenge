@@ -1,8 +1,10 @@
 #pragma once
-
-//Created:	21.04.2024
-//Copied:   30.03.2026
-//Authors:	Vincent Rohkamm, Florian Wiesner
+/**
+ * @name:    Driving.h
+ * @date:    30.03.2026
+ * @authors: Vincent Rohkamm, Florian Wiesner
+ * @details: High-level motion control — PID drive, wall alignment, turn control, ramp traversal, and bumper handling.
+ */
 
 #include <Arduino.h>
 #include <math.h>
@@ -18,19 +20,11 @@ class Vcameras;
 
 
 class Driving {
-protected:
-
-    //#define DEBUG_RAMP
-    //#define DEBUG_RAMP_ARRAY
-    //#define DEBUG_X64
-    //#define DEBUG_DRIVING
-
-
 private:
 //CONFIGURATION -------------------------------------------------------------------------------------------------------------------------
-    #define MIN_SETTILE_TIME 750
-    #define INCLINE_ARRAY_SIZE 250
-    #define reverseBumperTimeout 2000
+    static constexpr uint16_t MIN_SETTILE_TIME      = 750;
+    static constexpr uint16_t INCLINE_ARRAY_SIZE    = 250;
+    static constexpr uint16_t REVERSE_BUMPER_TIMEOUT = 2000;
 
     //Driving consants
     const uint8_t tof_sideWallThreshold = 170;
@@ -170,9 +164,14 @@ public:
 
     /**
      * @brief  Initializes the Driving module and links all required subsystems.
-     * @param  Pointers to all required modules (sensors, mapping, drivetrain).
+     * @param  p_colorSensing  Pointer to the ColorSensing module.
+     * @param  p_tof           Pointer to the TofSensors module.
+     * @param  p_gyro          Pointer to the GyroBase module.
+     * @param  mapSys_pointer  Pointer to the Mapping module.
+     * @param  cam_pointer     Pointer to the Vcameras module.
+     * @param  p_drivetrain    Pointer to the Drivetrain module.
      */
-    void init(ColorSensing* p_colorSensing, TofSensors* p_tof, GyroBase* p_gyro, Mapping* mapSys_pointer, Vcameras* cam_pointer, Drivetrain* p_drivetrain);
+    void Init(ColorSensing* p_colorSensing, TofSensors* p_tof, GyroBase* p_gyro, Mapping* mapSys_pointer, Vcameras* cam_pointer, Drivetrain* p_drivetrain);
 
     //Bumpers:  
     /**

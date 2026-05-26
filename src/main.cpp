@@ -146,7 +146,7 @@ int main(void) {
   else {UI.AddInfoMsg("Cameras", "OK", true);}
 
   //Robot
-  robot.init(&cs, &tof, &gyro, &mapper, &cam ,&drivetrain);
+  robot.Init(&cs, &tof, &gyro, &mapper, &cam ,&drivetrain);
   UI.AddInfoMsg("Driving", "OK", true);
 
   //Ejector

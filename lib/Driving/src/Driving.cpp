@@ -1,5 +1,18 @@
+/**
+ * @name:    Driving.cpp
+ * @date:    30.03.2026
+ * @authors: Vincent Rohkamm, Florian Wiesner
+ * @details: Implementation of the Driving class.
+ */
 #include "Driving.h"
 #include <Vcameras.h>
+
+//#define DEBUG_RAMP
+//#define DEBUG_RAMP_ARRAY
+//#define DEBUG_X64
+//#define DEBUG_DRIVING
+//#define DEBUG_TURN
+//#define DEBUG_DRIVING_1
 
 #ifdef _MSC_VER
 #pragma region BUMPERS
@@ -9,14 +22,14 @@ ErrorCodes Driving::reverseBumper(uint16_t distance, int8_t speedLeft, int8_t sp
 	
     p_drivetrain->EnableEncoder();
 	p_drivetrain->ResetEncoder();
-	while (p_drivetrain->GetEncoderDistance() < distance && buffer_beginTime + reverseBumperTimeout > millis()) {	//Drive back the distance, Check Timeout
+	while (p_drivetrain->GetEncoderDistance() < distance && buffer_beginTime + REVERSE_BUMPER_TIMEOUT > millis()) {	//Drive back the distance, Check Timeout
         p_drivetrain->SetSpeedLeft(speedLeft);
         p_drivetrain->SetSpeedRight(speedRight);
 	}
 	p_drivetrain->Stop();
 
 	if (sensor.type != ReferenceObj::ENCODER) p_drivetrain->DisableEncoder();
-	if(buffer_beginTime + reverseBumperTimeout < millis()) return ErrorCodes::TIMEOUT;	//Timeout reached
+	if(buffer_beginTime + REVERSE_BUMPER_TIMEOUT < millis()) return ErrorCodes::TIMEOUT;	//Timeout reached
 	return ErrorCodes::OK;
 }
 ErrorCodes Driving::enableBumpers(void){
@@ -771,7 +784,7 @@ TOF_Optimal_Value Driving::getOptimalSensor(bool rampDown){
     #endif // DEBUG
 	return result;
 }
-void Driving::init(ColorSensing* p_colorSensing, TofSensors* p_tof, GyroBase* p_gyro, Mapping* mapSys_pointer, Vcameras* cam_pointer, Drivetrain* p_drivetrain) {
+void Driving::Init(ColorSensing* p_colorSensing, TofSensors* p_tof, GyroBase* p_gyro, Mapping* mapSys_pointer, Vcameras* cam_pointer, Drivetrain* p_drivetrain) {
     this->p_colorSensing = p_colorSensing;
     this->p_tof = p_tof;
     this->p_gyro = p_gyro;
