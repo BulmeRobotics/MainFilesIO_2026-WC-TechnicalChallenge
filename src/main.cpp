@@ -121,7 +121,7 @@ int main(void) {
 
 
   //----EEPROM----
-  eeprom.Init() != ErrorCodes::OK ? UI.AddInfoMsg("I2C", "ERROR", false) : UI.AddInfoMsg("I2C", "OK", true); 
+  (eeprom.Init() != ErrorCodes::OK) ? UI.AddInfoMsg("EEPROM", "ERROR", false) : UI.AddInfoMsg("EEPROM", "OK", true); 
   
   //----Color sensor----
   if(cs.Init(&Wire,&UI,&eeprom)!=0) UI.AddInfoMsg("Color Sensor", "ERROR", false);
