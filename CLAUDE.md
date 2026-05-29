@@ -118,4 +118,10 @@ Rule of thumb: if the change touches more than one library or introduces a new p
 ## Driving Library — Pending Work
 
 ### Phase 5 — PID controller rewrite
-Ziegler-Nichols is used **offline** to derive the P/I/D constants; those constants are then baked into the code as `static constexpr` values. The runtime loop uses a properly measured `dt` (actual elapsed milliseconds, not a fixed assumption). Anti-windup is included (integral clamped when output saturates). **Behavior will intentionally change — tune on hardware after implementation.**
+Ziegler-Nichols is used **offline** to derive the P/I/D constants. `Kp` is fully static and baked in as a `static constexpr`. `Ki` and `Kd` are also `static constexpr`, but they **must** still be applied with the measured `dt` in the loop (`integral += error * dt`, `derivative = (error - lastError) / dt`) — the coefficients are constant, the time scaling is not.
+
+The runtime loop uses a properly measured `dt` (actual elapsed milliseconds converted to seconds). `dt` is clamped to `PID_LOOP_DURATION` when the measured loop time exceeds `2 × PID_LOOP_DURATION` to prevent derivative kick on long gaps.
+
+Anti-windup uses **Conditional Integration**: the integral term is only accumulated when the output is not saturated (i.e. `correctionSpeed` is within its allowed range before clamping). This avoids the integral growing unboundedly without requiring a magic-number clamp value. The current `integralError = 0` on exact-zero error is incorrect and must be removed.
+
+**Behavior will intentionally change — tune on hardware after implementation.**
