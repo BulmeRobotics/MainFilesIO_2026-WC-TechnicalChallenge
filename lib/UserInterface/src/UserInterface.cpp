@@ -76,7 +76,6 @@ void UserInterface::DrawMainMenuStatic() {
     // Grauer Hintergrundbalken
     display.fillRoundRect(0, 6, 120, 468, 15, HL_COLOR);
 
-    // Buttons zeichnen (Die Klasse übernimmt Form, Text und Icons!)
     btnMenuLocation.Draw(display);
     btnMenuSensor.Draw(display);
     btnMenuSettings.Draw(display);
@@ -854,7 +853,62 @@ void UserInterface::Update(){
 
     } else if (*p_state == RobotState::INFO_SENSOR){
         //Sensor Information
-        
+        display.setTextColor(TEXT_COLOR, BG_COLOR);
+        display.setTextSize(3);
+
+        display.fillRoundRect(400,180,120,120,10,BTN_COLOR);        //"Robot"
+        display.fillTriangle(460,228,448,252,472,252,TEXT_COLOR);   //Direction
+
+        //Gyro Angles
+        display.setCursor(658,374);
+        display.println("Gyro");
+
+        char buffer[20];
+        display.setCursor(676, display.getCursorY());
+        sprintf(buffer, "X: %3d", (int)(gyro_X));
+        display.println(buffer);
+
+        display.setCursor(676, display.getCursorY());
+        sprintf(buffer, "Y: %3d", (int)(gyro_Y));
+        display.println(buffer);
+
+        display.setCursor(676, display.getCursorY());
+        sprintf(buffer, "Z: %3d", (int)(gyro_Z));
+        display.print(buffer);
+
+        //ToF Values
+            //LEFT
+        display.setCursor(312,204);
+        sprintf(buffer, "%4d", tof_LF);
+        display.print(buffer);
+        display.setCursor(312,252);
+        sprintf(buffer,"%4d", tof_LB);
+        display.print(buffer);
+
+            //RIGHT
+        display.setCursor(536,204);
+        sprintf(buffer, "%4d", tof_RF);
+        display.print(buffer);
+        display.setCursor(536,252);
+        sprintf(buffer,"%4d", tof_RB);
+        display.print(buffer);
+
+            //FRONT
+        display.setCursor(433,122);
+        sprintf(buffer, "%4d", tof_F);
+        display.println(buffer);
+        display.setCursor(415,display.getCursorY());
+        sprintf(buffer, "W%4d", tof_FW);
+        display.print(buffer);
+
+            //BACK
+        display.setCursor(433,310);
+        sprintf(buffer, "%4d", tof_B);
+        display.println(buffer);
+        display.setCursor(415,display.getCursorY());
+        sprintf(buffer, "W%4d", tof_BW);
+        display.print(buffer);
+
 
 
     } else if(*p_state == RobotState::BOOT){
@@ -969,9 +1023,6 @@ ErrorCodes UserInterface::CycleDriveMode(){
     return driveMode;
 }
 
-void UserInterface::UpdateToF(uint16_t RF, uint16_t RB, uint16_t LF, uint16_t LB, uint16_t FD, uint16_t FU, uint16_t BU, uint16_t BD){
-
-}
 
 #ifdef _MSC_VER
   #pragma endregion Public Methods  

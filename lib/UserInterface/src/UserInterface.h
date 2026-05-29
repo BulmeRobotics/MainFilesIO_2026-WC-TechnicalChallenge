@@ -98,6 +98,19 @@ private:
     static constexpr uint8_t buzzerPin = 63;
     Adafruit_NeoPixel pixels = Adafruit_NeoPixel(pixelNum, neoPin, NEO_GRBW + NEO_KHZ800);
 
+    // --- Sensor Data ---
+    uint16_t tof_LF = 0;
+    uint16_t tof_LB = 0;
+    uint16_t tof_RF = 0;
+    uint16_t tof_RB = 0;
+    uint16_t tof_F = 0;
+    uint16_t tof_FW = 0;
+    uint16_t tof_B = 0;
+    uint16_t tof_BW = 0;
+    float gyro_X = 0;
+    float gyro_Y = 0;
+    float gyro_Z = 0;
+
     // --- Battery Measurement ---
     static constexpr uint8_t batteryPin = A0;
     uint8_t lastPercent = 0;
@@ -287,5 +300,13 @@ public:
      */
     void UpdateMap() { _updateMap = true; };
 
-    void UpdateToF(uint16_t RF, uint16_t RB, uint16_t LF, uint16_t LB, uint16_t FD, uint16_t FU, uint16_t BU, uint16_t BD);
+    void UpdateSensors(uint16_t RF, uint16_t RB, uint16_t LF, uint16_t LB, uint16_t F, uint16_t FW, uint16_t B, uint16_t BW, float aX, float aY = 0, float aZ = 0) {
+        tof_RF = RF; tof_RB = RB;
+        tof_LB = LB; tof_LF = LF;
+        tof_B = B; tof_BW = BW;
+        tof_F = F; tof_FW = FW;
+        gyro_X= aX;
+        gyro_Y= aY;
+        gyro_Z= aZ;
+    }
 };
