@@ -394,7 +394,13 @@ while (true) {
   } 
   
   else if (currentMenuState == RobotState::INFO_SENSOR) {
-
+    UI.UpdateSensors(tof.GetRange(TofType::RIGHT_FRONT),tof.GetRange(TofType::RIGHT_BACK),
+      tof.GetRange(TofType::LEFT_FRONT),tof.GetRange(TofType::LEFT_BACK),
+      tof.GetRange(TofType::FRONT),tof.GetRange(TofType::FRONT_WALL),
+      tof.GetRange(TofType::BACK),tof.GetRange(TofType::BACK_WALL),
+      gyro.GetAngle(GyroAxles::Axis_X), gyro.GetAngle(GyroAxles::Axis_Y), gyro.GetAngle(GyroAxles::Axis_Z)
+    );
+    delay(20);
   } else if(currentMenuState == RobotState::INFO_VISUAL){
 
   } 
