@@ -142,11 +142,10 @@ int main(void) {
 
   UI.AddInfoMsg("Drivetrain", "OK", true);
 
-  //BLE
+  //----BLE----
   if(ble.init(&UI) == ErrorCodes::no_connection) UI.AddInfoMsg("BLE", "CONN ERROR", false);
   else UI.AddInfoMsg("BLE", "OK", true);
 
-  //Camera
   //----Camera----
   if(cam.Init(&ejector, &mapper, &robot, &UI, &drivetrain) != ErrorCodes::OK) UI.AddInfoMsg("Cameras", "CONN ERROR", false);
   else {UI.AddInfoMsg("Cameras", "OK", true);}
