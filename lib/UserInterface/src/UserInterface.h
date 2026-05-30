@@ -141,6 +141,8 @@ private:
     RobotState* p_state = nullptr;
     RobotState lastState = RobotState::BOOT;
     bool _lastCamAlert = false;
+    bool _lastCamLeftEn = false;
+    bool _lastCamRightEn = false;
 
     // --- Icon Drawing Functions ---
     static void DrawIconLocation(GigaDisplay_GFX& display, uint16_t cx, uint16_t cy);

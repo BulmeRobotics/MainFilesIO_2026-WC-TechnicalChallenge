@@ -219,25 +219,40 @@ void UserInterface::UpdateRunMenu() {
         _lastCamAlert = camIsAlert;
     }
     
-    display.setTextColor(TEXT_COLOR);
+    //Cam left Enabled?
+    bool camEnBuff = p_camera->IsEnabled(ErrorCodes::left);
+    if(camEnBuff != _lastCamLeftEn){
+        _lastCamLeftEn = camEnBuff;
 
-    //CAM LEFT EN
-    int16_t buffColor =     (p_camera->IsEnabled(ErrorCodes::left)) ? 0x0320 : 0x8410;
-    uint8_t buffOffset =    (p_camera->IsEnabled(ErrorCodes::left)) ? 18 : 8;
-    String  buffTxt =       (p_camera->IsEnabled(ErrorCodes::left)) ? "EN" : "DIS";
-    display.fillRoundRect(MAP_AREA_WIDTH + 20, 110, 70, 40, 10, buffColor);
-    display.setCursor(MAP_AREA_WIDTH + 20 + buffOffset, 118);
-    display.print(buffTxt);
+        int16_t buffTxtColor =  _lastCamLeftEn ? TEXT_COLOR : 0x3186;
+        int16_t buffColor =     _lastCamLeftEn ? 0x0320 : 0x8410;
+        uint8_t buffOffset =    _lastCamLeftEn ? 18 : 8;
+        String  buffTxt =       _lastCamLeftEn ? "EN" : "DIS";
 
-    //CAM RIGHT En
-    buffColor =     (p_camera->IsEnabled(ErrorCodes::right)) ? 0x0320 : 0x8410;
-    buffOffset =    (p_camera->IsEnabled(ErrorCodes::right)) ? 18 : 8;
-    buffTxt =       (p_camera->IsEnabled(ErrorCodes::right)) ? "EN" : "DIS";
-    display.fillRoundRect(MAP_AREA_WIDTH + 20 + 20 + 70, 110, 70, 40, 10, buffColor);
-    display.setCursor(MAP_AREA_WIDTH + 110 + buffOffset, 118);
-    display.print(buffTxt);
+        display.setTextColor(buffTxtColor);
+        display.fillRoundRect(MAP_AREA_WIDTH + 20, 110, 70, 40, 10, buffColor);
+        display.setCursor(MAP_AREA_WIDTH + 20 + buffOffset, 118);
+        display.print(buffTxt);
+    }
+
+    //Cam Right Enabled?
+    camEnBuff = p_camera->IsEnabled(ErrorCodes::right);
+    if(camEnBuff != _lastCamRightEn){
+        _lastCamRightEn = camEnBuff;
+
+        int16_t buffTxtColor =  _lastCamRightEn ? TEXT_COLOR : 0x3186;
+        int16_t buffColor =     _lastCamRightEn ? 0x0320 : 0x8410;
+        uint8_t buffOffset =    _lastCamRightEn ? 18 : 8;
+        String  buffTxt =       _lastCamRightEn ? "EN" : "DIS";
+
+        display.setTextColor(buffTxtColor);
+        display.fillRoundRect(MAP_AREA_WIDTH + 20 + 20 + 70, 110, 70, 40, 10, buffColor);
+        display.setCursor(MAP_AREA_WIDTH + 110 + buffOffset, 118);
+        display.print(buffTxt);
+    }
     
     // 2. COLOR SENSOR STATUS UPDATEN
+    display.setTextColor(TEXT_COLOR);
     display.setCursor(MAP_AREA_WIDTH + 15, 285);
     
     if (p_colorSens != nullptr) {
