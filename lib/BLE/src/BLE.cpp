@@ -34,6 +34,7 @@ void BLE_UART::pollBLE(){
 #endif
 
 ErrorCodes BLE_UART::init(UserInterface* ui){
+    if(!_ENABLED) return ErrorCodes::disabled;
     _ui = ui;
     if(!BLE.begin()){   //Begin BLE
         if(_debug_ifc != nullptr) _debug_ifc->println("BLE init failed");
@@ -43,13 +44,12 @@ ErrorCodes BLE_UART::init(UserInterface* ui){
 }
 
 ErrorCodes BLE_UART::connect(){
+    if(!_ENABLED) return ErrorCodes::disabled;
     if(_ui != nullptr) _ui->ShowCalibrationScreen(PoI_Type::ble);
 
     uint32_t startTime = millis();
 
     BLE.scanForUuid(serviceUUID);
-
-    
 
     while (startTime + timeoutTime > millis()){
         if(_ui != nullptr) _ui->UpdateCalibrationProgress(1,6);

@@ -58,7 +58,7 @@ Mapping mapper;
 Drivetrain drivetrain;
 Driving robot;
 Vcameras cam;
-BLE_UART ble;
+BLE_UART ble(false);
 
 
 #ifdef _MSC_VER
@@ -140,8 +140,20 @@ int main(void) {
     UI.AddInfoMsg("Gyro", "ERROR", true);
 
   //----BLE----
-  //if(ble.init(&UI) == ErrorCodes::no_connection) UI.AddInfoMsg("BLE", "CONN ERROR", false);
-  UI.AddInfoMsg("BLE", "NOT ENABLED", false);
+  switch(ble.init(&UI)){
+  case ErrorCodes::OK:
+    UI.AddInfoMsg("BLE", "OK", true);
+    break;
+  case ErrorCodes::no_connection:
+    UI.AddInfoMsg("BLE", "CONN ERROR", false);
+    break;
+  case ErrorCodes::disabled:
+    UI.AddInfoMsg("BLE", "NOT ENABLED", false);
+    break;
+  default:
+    UI.AddInfoMsg("BLE", "UNKNOWN", false);
+    break;
+  } 
 
   //----Camera----
   if(cam.Init(&ejector, &mapper, &robot, &UI, &drivetrain) != ErrorCodes::OK) UI.AddInfoMsg("Cameras", "CONN ERROR", false);
