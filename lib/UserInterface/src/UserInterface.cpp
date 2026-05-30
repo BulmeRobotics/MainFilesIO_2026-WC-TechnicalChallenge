@@ -203,39 +203,40 @@ void UserInterface::ConstructRunMenu() {
 void UserInterface::UpdateRunMenu() {
     // 1. KAMERA STATUS UPDATEN
     display.setTextSize(3);
-    
+
+    bool camIsAlert = p_camera->IsAlert();
     //Kamera Alert
-    if(p_camera->IsAlert()){
-        //ALERT
+    if(camIsAlert != _lastCamAlert){
+        if(camIsAlert){ //Is ALERT
+            display.fillRoundRect(MAP_AREA_WIDTH + 20, 60, 160, 40, 10,0xFB0C); //Green //Dark Green 0x0320
+            display.setTextColor(0x3186);// Dark Grey  //Grey 0x8410
+        } else{     //No ALERT
+            display.fillRoundRect(MAP_AREA_WIDTH + 20, 60, 160, 40, 10,0x8410); //Green //Dark Green 0x0320
+            display.setTextColor(0x3186);// Dark Grey  //Grey 0x8410
+        }
+        display.setCursor(MAP_AREA_WIDTH + 25 + 30, 68);
+        display.print("ALERT");
+        _lastCamAlert = camIsAlert;
     }
+    
+    display.setTextColor(TEXT_COLOR);
 
+    //CAM LEFT EN
+    int16_t buffColor =     (p_camera->IsEnabled(ErrorCodes::left)) ? 0x0320 : 0x8410;
+    uint8_t buffOffset =    (p_camera->IsEnabled(ErrorCodes::left)) ? 18 : 8;
+    String  buffTxt =       (p_camera->IsEnabled(ErrorCodes::left)) ? "EN" : "DIS";
+    display.fillRoundRect(MAP_AREA_WIDTH + 20, 110, 70, 40, 10, buffColor);
+    display.setCursor(MAP_AREA_WIDTH + 20 + buffOffset, 118);
+    display.print(buffTxt);
 
-    // Linke Kamera
-    display.setCursor(MAP_AREA_WIDTH + 15, 85);
-    if (!p_camera->IsEnabled(ErrorCodes::left)) {
-        display.setTextColor(0x7BEF, HL_COLOR); // Grau
-        display.print("DISABLED ");
-    } else if (false) {
-        display.setTextColor(0xF800, HL_COLOR); // Rot
-        display.print("ALERT!   ");
-    } else {
-        display.setTextColor(0x07E0, HL_COLOR); // Grün
-        display.print("CLEAR    ");
-    }
-
-    // Rechte Kamera
-    display.setCursor(MAP_AREA_WIDTH + 15, 145);
-    if (!p_camera->IsEnabled(ErrorCodes::right)) {
-        display.setTextColor(0x7BEF, HL_COLOR); 
-        display.print("DISABLED ");
-    } else if (false) {
-        display.setTextColor(0xF800, HL_COLOR); 
-        display.print("ALERT!   ");
-    } else {
-        display.setTextColor(0x07E0, HL_COLOR); 
-        display.print("CLEAR    ");
-    }
-
+    //CAM RIGHT En
+    buffColor =     (p_camera->IsEnabled(ErrorCodes::right)) ? 0x0320 : 0x8410;
+    buffOffset =    (p_camera->IsEnabled(ErrorCodes::right)) ? 18 : 8;
+    buffTxt =       (p_camera->IsEnabled(ErrorCodes::right)) ? "EN" : "DIS";
+    display.fillRoundRect(MAP_AREA_WIDTH + 20 + 20 + 70, 110, 70, 40, 10, buffColor);
+    display.setCursor(MAP_AREA_WIDTH + 110 + buffOffset, 118);
+    display.print(buffTxt);
+    
     // 2. COLOR SENSOR STATUS UPDATEN
     display.setCursor(MAP_AREA_WIDTH + 15, 285);
     
