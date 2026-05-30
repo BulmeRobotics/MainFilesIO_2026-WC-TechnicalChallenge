@@ -17,6 +17,8 @@
 #define UPPER_LEVEL_HEIGHT 230
 #define LOWER_LEVEL_HEIGHT -100
 
+// #define PID_TUNE_MODE  // Uncomment to enable drive-forever PID tuning harness
+
 #ifdef _MSC_VER
   #pragma endregion Defines
   #pragma region Includes //-----------------------------------------------------------------------
@@ -170,6 +172,22 @@ int main(void) {
 
   UI.AddInfoMsg("Finished STARTUP", "ACK", false);
 
+#ifdef PID_TUNE_MODE
+  while (currentMenuState != RobotState::RUN) {
+    cyclicMainTask();
+  }
+  gyro.ResetAllAngles();
+  robot.SetRobotTargetAngle(Orientations::North);
+  currentRunState = RunState::DRIVE;
+  robot.EnableBumpers();
+  robot.StartDrive(false);
+  while (true) {
+    serialLoop();
+    cyclicMainTask();
+    cyclicRunTask();
+    robot.ControlDrive(UI.GetDriveSpeed(), gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle()));
+  }
+#endif
 
 #ifdef _MSC_VER
   #pragma endregion Initialization

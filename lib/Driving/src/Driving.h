@@ -261,10 +261,11 @@ class Driving {
         static constexpr float   STAIR_DOWN_ANGLE_OFFSET = -3.5f;
 
         //----PID tuning----
-        static constexpr float PID_CRITICAL_GAIN      = 7.5f;
-        static constexpr float PID_LOOP_DURATION      = 0.025f;
-        static constexpr float PID_OSCILLATION_PERIOD = 0.75f;
-        static constexpr float PID_LEFT_RIGHT_FACTOR  = 0.35f;
+        static constexpr float PID_KP                  = 6.0f;    // ZN: 0.6 * Ku (Ku=10.0)
+        static constexpr float PID_KI                  = 40.0f;  // ZN: 2*KP/Tu (Tu=0.3s)
+        static constexpr float PID_KD                  = 0.225f; // ZN: KP*Tu/8
+        static constexpr float PID_DT_NOMINAL          = 0.025f; // fallback dt for first iteration and clamping
+        static constexpr float LATERAL_TO_ANGLE_FACTOR = 0.35f;  // mm lateral offset → degree heading bias
 
         //----Bumper config----
         static constexpr uint8_t BUMPER_TRYS      = 5;
@@ -364,7 +365,6 @@ class Driving {
         //----Drive helpers----
         TOF_Optimal_Value   GetOptimalSensor(bool rampDown);
         void                ApplyRampFlagOverrides(TOF_Optimal_Value& result);
-        PID_Coefficients    CalculatePIDCoefficients(float loopDuration);
         uint16_t            CalculateNextTargetDistance(void);
 
         //----Ramp helpers----
