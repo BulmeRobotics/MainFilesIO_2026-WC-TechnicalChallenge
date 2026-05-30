@@ -46,11 +46,11 @@ Each library lives in `lib/<Name>/src/`. All share types from `CustomDatatypes`.
 |---|---|
 | `CustomDatatypes` | All shared enums/structs: `RobotState`, `RunState`, `ErrorCodes`, `TileType`, `Orientations`, `GyroData`, `PID_Coefficients`, etc. **Read this first.** |
 | `Mapping` | A* pathfinding on a 3D tile grid (up to 256 tiles). Outputs `Instructionset` commands (turn/drive/ramp). Handles checkpoints and multi-level ramps. |
-| `Driving` | High-level motion: PID wall-following, turn control, ramp detection/traversal, bumper avoidance. Depends on all sensors + `Mapping`. |
+| `Driving` | High-level motion: PID wall-following, turn control, ramp detection/traversal, bumper avoidance. Depends on all sensors + `Mapping`. Private helpers: `CalculateTurnSpeed`, `CalculateNextTargetDistance`, `UpdateRampProximityFlags`. |
 | `Motor` | Low-level `Motor` class and `Drivetrain` (two motors + encoder ISR). |
 | `TofSensors` | Aggregates all ToF sensors (VL53L4CD for all 6 directional sensors, VL53L5CX 8×8 array for ramp detection). Returns wall bitmask for `Mapping`. Note: `TofVL6180X` class exists in the source but is not currently instantiated. |
 | `ColorSensing` | AS7341 spectral sensor for floor type detection (`TileType`: checkpoint, blue, black, dangerZone). Stores calibration in FRAM via EEPROM. |
-| `Gyro` | BNO055 IMU wrapper. Provides absolute/relative angles and `GetAngleFromOrientation()` for cardinal directions. |
+| `Gyro` | BNO055 IMU wrapper. Provides absolute/relative angles and `GetAngleFromOrientation()` for cardinal directions. `GyroBNO055` has `static constexpr bool INVERT_AXIS_Z` — set `true` when the IMU is mounted with Axis_Z polarity inverted (symptom: ramp-up/down detection swapped). |
 | `Ejector` | Two servo-driven rescue kit dispensers (left pin 4, right pin 7). Tracks remaining kits in nibble-packed byte. |
 | `UserInterface` | GigaDisplay 800×480 touchscreen, NeoPixel LEDs (18px, pin 8), buzzer (pin 58). Displays boot log, map, popups, and drive mode. |
 | `Vcameras` | Serial communication (UART) with left/right cameras (Raspberry Pi or OpenMV) for victim detection. Triggers `Ejector` on detection. |
@@ -135,3 +135,11 @@ float error = target_angle - current_angle;  // always in degrees, integral is m
 This keeps the gyro as the sole feedback signal. The ToF correction only tells the controller "your target heading is slightly adjusted" — the integral then always operates on a single physical quantity (angle). `LATERAL_TO_ANGLE_FACTOR` replaces `PID_LEFT_RIGHT_FACTOR` and has the same role but is conceptually a unit conversion (mm offset → degree bias) rather than a magic weight. At ToF-unreliable locations (intersections, openings) the lateral correction should be suppressed, same as in the current implementation.
 
 **Behavior will intentionally change — tune on hardware after implementation.**
+**Approach:** replace the current per-loop ZN coefficient recalculation with a standard dt-based PID.
+
+- `CalculatePIDCoefficients()` and the three ZN meta-constants (`PID_CRITICAL_GAIN`, `PID_LOOP_DURATION`, `PID_OSCILLATION_PERIOD`) are removed.
+- Three direct constants replace them: `PID_KP`, `PID_KI`, `PID_KD` — tuned once offline using ZN with measured average `dt`, never recalculated at runtime.
+- A `PID_DT_NOMINAL` fallback constant covers the very first loop iteration only.
+- Runtime inner loop becomes: `integralError += error * dt`, `derivativeError = (error - pidLastError) / dt`, `correctionSpeed = KP*e + KI*integral + KD*derivative`, clamped by existing anti-windup `constrain`.
+
+**Tuning workflow:** measure average loop dt via `DEBUG_DRIVING_1` → find Ku/Tu on hardware (P-only, ramp until oscillation) → apply ZN formulas once → bake constants. Create branch `pid-tuning`, add `#define PID_TUNE_MODE` drive-forever harness in `main.cpp`. **Behavior will intentionally change — tune on hardware after implementation.**
