@@ -11,12 +11,12 @@
 #pragma region DEBUG
 #endif
 
-//#define DEBUG_RAMP
-//#define DEBUG_RAMP_ARRAY
-//#define DEBUG_X64
-//#define DEBUG_DRIVING
-//#define DEBUG_TURN
-//#define DEBUG_DRIVING_1
+// #define DEBUG_RAMP
+// #define DEBUG_RAMP_ARRAY
+// #define DEBUG_X64
+// #define DEBUG_DRIVING
+// #define DEBUG_TURN
+#define DEBUG_PID
 
 #ifdef _MSC_VER
 #pragma endregion DEBUG
@@ -221,6 +221,7 @@ ErrorCodes Driving::StartDrive(bool rampDown) {
 	registeredBumps = 0;	// Reset bump counter
 	_DRIVE_TIMEOUT = false;
 	_CAM_VICTIM = false;
+	filteredLR = 0.0f;
 	maxDriveTime = DEFAULT_MAX_DRIVE_TIME;
 	ts_driveStartTime = millis();
 
@@ -257,25 +258,40 @@ uint16_t Driving::CalculateNextTargetDistance(void) {
 ErrorCodes Driving::ControlDrive(int8_t driveSpeed, float angle) {
 	if (_SLOW_SPEED)
 		driveSpeed = 25;
-	p_gyro->GetAngleAdvanced(angle, GyroAxles::Axis_X);	// Read gyro for current angle and error
-	int8_t leftRightError = p_tof->CalculateLeftRightError(p_gyro->data.angle_error, TOF_SIDE_WALL_THRESHOLD, GAP_ROBOT_WALL);
-	float error = -p_gyro->data.angle_error + (leftRightError * PID_LEFT_RIGHT_FACTOR);
 
-	if (error != 0) integralError += error;	// Accumulate integral error
-	else integralError = 0;	// Reset integral on zero error
-	derivativeError = error - pidLastError;	// Calculate derivative error
+	// Read sensor once; use nominal angle for ToF suppression check, biased angle for PID error
+	float actualAngle = p_gyro->GetAngle(GyroAxles::Axis_X);
+	p_gyro->GetAngleAdvanced(angle, actualAngle);
+	int8_t leftRightError = p_tof->CalculateLeftRightError(p_gyro->data.angle_error, TOF_SIDE_WALL_THRESHOLD, GAP_ROBOT_WALL);
+	filteredLR = 0.7f * filteredLR + 0.3f * (float)leftRightError;
+
+	float targetAngle = angle - (filteredLR * LATERAL_TO_ANGLE_FACTOR);
+	if (targetAngle > 360.0f) targetAngle -= 360.0f;
+	if (targetAngle < 0.0f)   targetAngle += 360.0f;
+	p_gyro->GetAngleAdvanced(targetAngle, actualAngle);
+	float error = -p_gyro->data.angle_error;
+
+	// Measure dt; guard first iteration against derivative kick
+	float dt;
+	float rawDt = 0.0f;
+	if (ts_lastPID == 0) {
+		dt              = PID_DT_NOMINAL;
+		derivativeError = 0.0f;
+		pidLastError    = error;
+	}
+	else {
+		rawDt = (float)(millis() - ts_lastPID) / 1000.0f;
+		dt    = (rawDt > 2.0f * PID_DT_NOMINAL) ? PID_DT_NOMINAL : rawDt;
+		derivativeError = (error - pidLastError) / dt;
+	}
 	pidLastError = error;
 
-	PID_Coefficients coeff;
-	if (ts_lastPID) coeff = CalculatePIDCoefficients((float)(millis() - ts_lastPID) / 1000);
-	else coeff = CalculatePIDCoefficients(PID_LOOP_DURATION);
-	#ifdef DEBUG_DRIVING
-		Serial.print("Time: ");
-		Serial.println((float)(millis() - ts_lastPID));
-	#endif
-
-	correctionSpeed = (coeff.P * error) + (coeff.I * integralError) + (coeff.D * derivativeError);
-	correctionSpeed = constrain(correctionSpeed, (-driveSpeed * 0.33), (driveSpeed * 0.33));	// Limit correction to 33% of drive speed
+	// Conditional anti-windup: only commit integral when output is not saturated
+	float lim              = driveSpeed * 0.33f;
+	float candidateIntegral = integralError + error * dt;
+	float output           = PID_KP * error + PID_KI * candidateIntegral + PID_KD * derivativeError;
+	if (output <= lim && output >= -lim) integralError = candidateIntegral;
+	correctionSpeed = constrain(output, -lim, lim);
 
 	if (driveSpeed >= 90) driveSpeed = 90;
 	if (_ON_RAMP) driveSpeed = rampSpeed;
@@ -287,15 +303,15 @@ ErrorCodes Driving::ControlDrive(int8_t driveSpeed, float angle) {
 
 	ts_lastPID = millis();
 
-	#ifdef DEBUG_DRIVING_1
-	Serial.print("Angle: ");
-	Serial.print(gyro.data.angle_error);
-	Serial.print("\tOffest: ");
-	Serial.print(leftRightError);
-	Serial.print("\tError: ");
-	Serial.print(error);
-	Serial.print("\tTimestamp: ");
-	Serial.println(millis());
+	#ifdef DEBUG_PID
+	// A=actual heading  T=biased target  LR=lateral mm  E=error(deg)  C=correction  dt=clamped ms  R=raw ms
+	Serial.print("A:"); Serial.print(actualAngle, 1);
+	Serial.print("\tT:"); Serial.print(targetAngle, 1);
+	Serial.print("\tLR:"); Serial.print(leftRightError); Serial.print("\tFLR:"); Serial.print(filteredLR, 1);
+	Serial.print("\tE:"); Serial.print(error, 2);
+	Serial.print("\tC:"); Serial.print(correctionSpeed, 2);
+	Serial.print("\tdt:"); Serial.print(dt * 1000.0f, 1);
+	Serial.print("\tR:"); Serial.println(rawDt * 1000.0f, 1);
 	#endif
 
 	if (_CAM_VICTIM) maxDriveTime = 12000;
@@ -425,22 +441,6 @@ void Driving::ApplyRampFlagOverrides(TOF_Optimal_Value& result){
 	_RAMP_BEHIND  = false;
 }
 
-PID_Coefficients Driving::CalculatePIDCoefficients(float loopDuration){
-	// Derives Ziegler-Nichols P/I/D coefficients scaled by measured loop duration.
-	if (loopDuration >= 2 * PID_LOOP_DURATION) loopDuration = PID_LOOP_DURATION;	// Clamp to prevent derivative kick on long gaps
-	float time_coeff = loopDuration / PID_LOOP_DURATION;
-	PID_Coefficients pid;
-
-	pid.P = 0.6 * PID_CRITICAL_GAIN;
-	pid.I = time_coeff * 2 * pid.P * PID_LOOP_DURATION / PID_OSCILLATION_PERIOD;
-	pid.D = time_coeff * pid.P * PID_OSCILLATION_PERIOD / (8 * PID_LOOP_DURATION);
-	#ifdef DEBUG_DRIVING_1
-	Serial.println(pid.P);
-	Serial.println(pid.I);
-	Serial.println(pid.D);
-	#endif
-	return pid;
-}
 
 #ifdef _MSC_VER
 #pragma endregion
