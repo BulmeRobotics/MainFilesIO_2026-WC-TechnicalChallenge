@@ -23,18 +23,15 @@ class Vcameras
 private:
     // --- Hardware Info ---
     static constexpr unsigned long CAM_BAUD = 115200;
-    static constexpr UART* CAMERA_L = &Serial2;     // D18  TX1 PD_5
 
-    static constexpr uint8_t CAMERA_PIN_INT = 31;
-
-    static constexpr uint8_t CAMERAL_PIN_EN = 29;
-    static constexpr uint8_t CAMERAR_PIN_EN = 28;
-    // 27
+    static constexpr uint8_t CAMERA_PIN_INT = 31;   //GPIO1 CM5
+    static constexpr uint8_t CAMERAL_PIN_EN = 29;   //GPIO2 CM5
+    static constexpr uint8_t CAMERAR_PIN_EN = 28;   //GPIO3 CM5
 
     static constexpr uint32_t CAM_TIMEOUT = 300;
 
     //Serial
-    UART* _cam = CAMERA_L;
+    static constexpr UART* _cam = &Serial2;
 
     // --- related Objects ---
     Ejector* _ejector = nullptr;
