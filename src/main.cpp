@@ -465,7 +465,7 @@ void cyclicRunTask() {
   cam.Update(cs.GetFloor() == TileType::dangerZone);
   Serial.print("\tCAM:"); Serial.println(millis() - _t);
   #else
-  uint8_t buffer = tof.GetWalls(_RAMP_INFRONT, _RAMP_BEHIND);
+  //uint8_t buffer = tof.GetWalls(_RAMP_INFRONT, _RAMP_BEHIND);
   cam.Update(cs.GetFloor() == TileType::dangerZone);
   #endif
 
