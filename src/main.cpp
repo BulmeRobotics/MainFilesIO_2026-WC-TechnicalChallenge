@@ -431,8 +431,9 @@ while (true) {
       robot.EndDrive();
       robot.DisableBumpers();
       cam.Enable(false);
-      UI.LED_BUZZER_Signal(1000,1000,5);
       currentMenuState = RobotState::ABOUT;
+      UI.Update();
+      UI.LED_BUZZER_Signal(1000,1000,5);
     }
   } 
   
