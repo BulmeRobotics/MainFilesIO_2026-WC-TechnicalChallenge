@@ -26,8 +26,8 @@
 class BLE_UART : public Stream{
 private:
     //Settings
-    uint16_t timeoutTime;
     bool _ENABLED = false;
+    uint16_t timeoutTime;
     bool _CONNECTED = false;
 
     //UUIDs for Service
@@ -56,7 +56,7 @@ private:
     void pollBLE();
     
 public:
-    BLE_UART(bool enable = true, uint16_t timeout_ms = 5000, Stream* debugPort = nullptr) : _ENABLED(enable), _debug_ifc(debugPort), timeoutTime(timeout_ms) {}
+    BLE_UART(bool enable = true, uint16_t timeout_ms = 5000, Stream* debugPort = nullptr) : _ENABLED(enable), timeoutTime(timeout_ms), _debug_ifc(debugPort) {}
 
     /**
      * @brief Initializes BLE class.
