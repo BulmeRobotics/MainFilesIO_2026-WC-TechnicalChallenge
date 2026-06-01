@@ -5,7 +5,6 @@
  * @brief   camera class for communication between Camera (either RASPI or OPENMV) and uC
  * @date    01.04.2026
  * @todo    -UI Update for new Alert System
- * @todo    -UI Update for new Alert System
  */
 
 #include <Arduino.h>
@@ -33,7 +32,6 @@ private:
 
     //Serial
     static constexpr UART* _cam = &Serial2;
-    static constexpr UART* _cam = &Serial2;
 
     // --- related Objects ---
     Ejector* _ejector = nullptr;
@@ -53,12 +51,9 @@ private:
     // --- Interface ---
     bool _connected = false;
     bool _enabled = false;
-    bool _connected = false;
-    bool _enabled = false;
 
     // --- State Fields ---
     bool _LeftEnabled = false, _RightEnabled = false;
-    bool _Alert = false;
     bool _Alert = false;
     bool _oldRed = false;
 
@@ -67,13 +62,7 @@ private:
     bool _enTarget = false;
     uint32_t _enStart = 0;
     String _rxAsync = "";
-    bool _pending = false;
-    bool _enTarget = false;
-    uint32_t _enStart = 0;
-    String _rxAsync = "";
 
-    ErrorCodes EnableNonBlockingStep();
-    bool TryReceivePacketNonBlocking();
     ErrorCodes EnableNonBlockingStep();
     bool TryReceivePacketNonBlocking();
 
@@ -86,7 +75,6 @@ private:
      * @param waittime time to block in ms
      * @return Commandostring
      */
-    String Recieve(uint32_t waittime = 0);
     String Recieve(uint32_t waittime = 0);
 
 public:
@@ -103,10 +91,8 @@ public:
      * @brief enables or disables Camera
      * @param en true...on, false...off
      * @param side left / right / both
-     * @param side left / right / both
      * @return OK / Error
      */
-    ErrorCodes Enable(bool en, bool blocking = true);
     ErrorCodes Enable(bool en, bool blocking = true);
 
     /**
@@ -117,7 +103,6 @@ public:
      * @return ErrorCodes for debugging
      */
     ErrorCodes Update(bool onRed);
-    ErrorCodes Update(bool onRed);
 
     /**
      * @brief Getter if Cam is enabled
@@ -126,7 +111,6 @@ public:
      */
     bool IsEnabled(ErrorCodes cam){
         bool enBuff = (cam == ErrorCodes::left) ? _LeftEnabled : _RightEnabled;
-        //Print state of camera
         if(_debug_ifc != nullptr) {
             _debug_ifc->print("CAM: ");
             _debug_ifc->print((cam == ErrorCodes::left) ? "L" : "R");
@@ -139,10 +123,7 @@ public:
     /**
      * @brief Getter if Cam is in Alert
      * @return true...ALERT, false...not ALERT
-     * @return true...ALERT, false...not ALERT
      */
-    bool IsAlert(){
-        return _Alert;
     bool IsAlert(){
         return _Alert;
     }

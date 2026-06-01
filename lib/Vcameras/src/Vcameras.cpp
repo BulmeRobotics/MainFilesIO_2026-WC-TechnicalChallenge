@@ -18,15 +18,7 @@ ErrorCodes Vcameras::Init(Ejector* ejector, Mapping* mapper, Driving* robot, Use
     //Set Enabled Pins as Input
     pinMode(CAMERAL_PIN_EN,INPUT);
     pinMode(CAMERAR_PIN_EN,INPUT);
-    // Set Alert Pins as Input
-    pinMode(CAMERA_PIN_INT, INPUT);
 
-    //Set Enabled Pins as Input
-    pinMode(CAMERAL_PIN_EN,INPUT);
-    pinMode(CAMERAR_PIN_EN,INPUT);
-
-    //Start Communication
-    _cam->begin(CAM_BAUD);
     //Start Communication
     _cam->begin(CAM_BAUD);
 
@@ -34,11 +26,6 @@ ErrorCodes Vcameras::Init(Ejector* ejector, Mapping* mapper, Driving* robot, Use
 
     String str;
 
-    _cam->print("<I>");
-    str = Recieve(CAM_TIMEOUT);
-    _connected = (str.indexOf("OK") != -1) ? true : false;
-
-    if(!_connected) return ErrorCodes::no_connection;
     _cam->print("<I>");
     str = Recieve(CAM_TIMEOUT);
     _connected = (str.indexOf("OK") != -1) ? true : false;
@@ -52,7 +39,6 @@ ErrorCodes Vcameras::Init(Ejector* ejector, Mapping* mapper, Driving* robot, Use
 //---------------------------------------------------------------------------------------------------------
 
 String Vcameras::Recieve(uint32_t waittime){
-String Vcameras::Recieve(uint32_t waittime){
     String str = "";
     uint32_t startTime = millis();
 
@@ -62,15 +48,7 @@ String Vcameras::Recieve(uint32_t waittime){
             if (c == '<') { //Msg start
                 str = ""; 
             } else if (c == '>') {  //Msg end
-    do {
-        while (_cam->available()){  //Is new Character available?
-            char c = _cam->read();  //Get char from UART
-            if (c == '<') { //Msg start
-                str = ""; 
-            } else if (c == '>') {  //Msg end
                 if(_debug_ifc != nullptr) _debug_ifc->println("Rec: " + str);
-                return str;
-            } else { 
                 return str;
             } else { 
                 str += c;
@@ -80,35 +58,23 @@ String Vcameras::Recieve(uint32_t waittime){
     } while (millis() - startTime < waittime);
 
     return " "; //Timeout
-        if(waittime != 0) delay(1);
-    } while (millis() - startTime < waittime);
-
-    return " "; //Timeout
 }
 
 bool Vcameras::TryReceivePacketNonBlocking(){
     while (_cam->available()) {
         char c = _cam->read();
-bool Vcameras::TryReceivePacketNonBlocking(){
-    while (_cam->available()) {
-        char c = _cam->read();
         if (c == '<') {
-            _rxAsync = "";
             _rxAsync = "";
         } else if (c == '>') {
             if(_debug_ifc != nullptr) _debug_ifc->println("Rec(NB): " + _rxAsync);
-            if(_debug_ifc != nullptr) _debug_ifc->println("Rec(NB): " + _rxAsync);
             return true;
         } else {
-            _rxAsync += c;
             _rxAsync += c;
         }
     }
     return false;
 }
 
-ErrorCodes Vcameras::EnableNonBlockingStep(){
-    if (!_pending) return ErrorCodes::OK;
 ErrorCodes Vcameras::EnableNonBlockingStep(){
     if (!_pending) return ErrorCodes::OK;
 
@@ -119,16 +85,12 @@ ErrorCodes Vcameras::EnableNonBlockingStep(){
         if (packet.indexOf("OK") != -1) {
             _enabled = _enTarget;
             if(_enabled == false) { _LeftEnabled = false; _RightEnabled = false; }
-            _enabled = _enTarget;
-            if(_enabled == false) { _LeftEnabled = false; _RightEnabled = false; }
             return ErrorCodes::OK;
         }
         //_ui->ShowPopup("cams enable error", ErrorCodes::ERROR);
         return ErrorCodes::invalid;
     }
 
-    if ((millis() - _enStart) > CAM_TIMEOUT) {
-        _pending = false;
     if ((millis() - _enStart) > CAM_TIMEOUT) {
         _pending = false;
         _ui->ShowPopup("cams enable timeout", ErrorCodes::warning, 2);
@@ -144,8 +106,6 @@ ErrorCodes Vcameras::EnableNonBlockingStep(){
 
 ErrorCodes Vcameras::Enable(bool en, bool blocking){
     if(!_connected) return ErrorCodes::no_connection;   //Check for connection first
-ErrorCodes Vcameras::Enable(bool en, bool blocking){
-    if(!_connected) return ErrorCodes::no_connection;   //Check for connection first
     if(en && _victimFound) return ErrorCodes::OK;
 
     if(_debug_ifc != nullptr){
@@ -157,26 +117,19 @@ ErrorCodes Vcameras::Enable(bool en, bool blocking){
         if (_enTarget != en) {
             // Command changed while waiting -> restart request with latest target.
             _pending = false;
-            _pending = false;
         } else {
-            ErrorCodes step = EnableNonBlockingStep();
             ErrorCodes step = EnableNonBlockingStep();
             if (!blocking || step != ErrorCodes::NO_NEW_DATA) return step;
         }
     }
 
     if(_enabled == en) return ErrorCodes::OK;
-    if(_enabled == en) return ErrorCodes::OK;
 
     //Send command
     const char* cmd = en ? "<E>" : "<D>";
     _cam->print(cmd);
-    _cam->print(cmd);
 
     // Prepare async wait state
-    _pending = true;
-    _enTarget = en;
-    _enStart = millis();
     _pending = true;
     _enTarget = en;
     _enStart = millis();
@@ -185,7 +138,6 @@ ErrorCodes Vcameras::Enable(bool en, bool blocking){
 
     // Blocking mode: keep stepping until done or timeout
     while (true) {
-        ErrorCodes step = EnableNonBlockingStep();
         ErrorCodes step = EnableNonBlockingStep();
         if (step == ErrorCodes::NO_NEW_DATA) {
             delay(1);
@@ -205,7 +157,6 @@ ErrorCodes Vcameras::HandleReset(){
         _victimFound = false;
         //Enable cams
         Enable(true, false);
-        Enable(true, false);
         return ErrorCodes::OK;
     }
     return ErrorCodes::disabled;
@@ -221,16 +172,12 @@ ErrorCodes Vcameras::Update(bool onRed){
     // Progress pending async enable commands for both cameras each cycle.
     EnableNonBlockingStep();
     EnableNonBlockingStep();
-    EnableNonBlockingStep();
-    EnableNonBlockingStep();
 
     if(HandleReset() == ErrorCodes::disabled) {if(_debug_ifc!=nullptr) _debug_ifc->println("Cams Disabled");return ErrorCodes::disabled;}
 
     if(_oldRed && !onRed) {
         Enable(true, false);
-        Enable(true, false);
     } else if (!_oldRed && onRed){
-        Enable(false, false);
         Enable(false, false);
     }
     _oldRed = onRed;
@@ -241,22 +188,15 @@ ErrorCodes Vcameras::Update(bool onRed){
     //check if cameras are enabled
     _LeftEnabled = digitalRead(CAMERAL_PIN_EN);
     _RightEnabled = digitalRead(CAMERAR_PIN_EN);
-    //check if cameras are enabled
-    _LeftEnabled = digitalRead(CAMERAL_PIN_EN);
-    _RightEnabled = digitalRead(CAMERAR_PIN_EN);
 
-    //Check Alert State
-    if(_LeftEnabled || _RightEnabled) _Alert = digitalRead(CAMERA_PIN_INT);
     //Check Alert State
     if(_LeftEnabled || _RightEnabled) _Alert = digitalRead(CAMERA_PIN_INT);
 
     //Continue when no camera is reporting
     if(!_Alert) return ErrorCodes::OK;
-    if(!_Alert) return ErrorCodes::OK;
 
     String str = "";
     ErrorCodes side;
-
 
     //Wait for new Data
     str = Recieve();
@@ -266,16 +206,7 @@ ErrorCodes Vcameras::Update(bool onRed){
     if(str[0] == 'L') side = ErrorCodes::left;
     else if(str[0] == 'R') side = ErrorCodes::right;
     else return ErrorCodes::invalid;
-    str = Recieve();
-    if(str[0] == ' ') return ErrorCodes::OK;    //Is data valid?
-
-    //Determine victim side
-    if(str[0] == 'L') side = ErrorCodes::left;
-    else if(str[0] == 'R') side = ErrorCodes::right;
-    else return ErrorCodes::invalid;
     
-    //Determine Victim Type
-    char victim = str[1];
     //Determine Victim Type
     char victim = str[1];
 
@@ -293,14 +224,11 @@ ErrorCodes Vcameras::Update(bool onRed){
     }
 
     //Stops robot
-    //Stops robot
     _drivetrain->Stop();
 
     //Reset cams
     _victimFound = true;
     _timeFound = millis();
-    Enable(false, false);
-    Enable(false, false);
     Enable(false, false);
     Enable(false, false);
 
@@ -324,13 +252,7 @@ ErrorCodes Vcameras::Update(bool onRed){
     _ui->ShowPopup(buffer, ErrorCodes::info, 5);
 
     _ui->LED_BUZZER_Signal(500, 500 ,1);
-
-    _ui->LED_BUZZER_Signal(500, 500 ,1);
     _ui->Update();
-    _ui->LED_BUZZER_Signal(500, 500 ,4);
-
-    //Eject
-    _ejector->Eject(side, amount);
     _ui->LED_BUZZER_Signal(500, 500 ,4);
 
     //Eject
@@ -339,11 +261,7 @@ ErrorCodes Vcameras::Update(bool onRed){
     
     _ui->Update();
     _robot->OnVictimDetected();
-    _robot->OnVictimDetected();
 
-    //2RP - Harmed
-    //1RP - Stable
-    //0RP - Unharmed
     //2RP - Harmed
     //1RP - Stable
     //0RP - Unharmed
