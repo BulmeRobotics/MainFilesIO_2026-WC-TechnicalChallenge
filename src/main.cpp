@@ -320,7 +320,6 @@ while (true) {
       default:
         break;
       }
-
     } 
     
     else if (currentRunState == RunState::CHECKPOINT_RESET) {
@@ -455,6 +454,10 @@ while (true) {
   else if (currentMenuState == RobotState::BT) {
     ble.connect();
     currentMenuState = RobotState::SETTINGS;
+
+    uint32_t bleStart = millis();
+    ble.print("BLE CONNECTED\nTime: ");
+    ble.println(millis()-bleStart);
   }
 
 }
