@@ -435,12 +435,12 @@ void UserInterface::ConstructSettingsMenu() {
     display.print("ColorSensor Calibration");
 
     //Background for speed
-    display.fillRect(150,64,200,84, BTN_COLOR);
+    display.fillRect(160,64,190,84, BTN_COLOR);
 
     // Draw Buttons
     btnSpeedMinus.Draw(display, "-");
     btnSpeedPlus.Draw(display, "+");
-    display.fillRoundRect(150,91,280,60,10,BTN_COLOR);
+    display.fillRoundRect(280,91,60,30,10,BTN_COLOR);
 
     btnCalibWhite.Draw(display, "WHI");
     btnBleConnect.Draw(display, "BLE");
@@ -994,6 +994,7 @@ void UserInterface::Update(){
         }
 
         //Update speed:
+        display.setTextColor(TEXT_COLOR,BTN_COLOR);
         display.setCursor(283, 94);
         char buff[6];
         sprintf(buff, "%3d", driveSpeed);
