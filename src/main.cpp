@@ -420,7 +420,7 @@ while (true) {
     //Settings Task
   } 
   
-  else if (currentMenuState == RobotState::INFO_SENSOR) {
+  else if (currentMenuState == RobotState::INFO_SENSOR || currentMenuState == RobotState::INFO_VISUAL) {
     UI.UpdateSensors(tof.GetRange(TofType::RIGHT_FRONT),tof.GetRange(TofType::RIGHT_BACK),
       tof.GetRange(TofType::LEFT_FRONT),tof.GetRange(TofType::LEFT_BACK),
       tof.GetRange(TofType::FRONT),tof.GetRange(TofType::FRONT_WALL),
@@ -428,9 +428,7 @@ while (true) {
       gyro.GetAngle(GyroAxles::Axis_X), gyro.GetAngle(GyroAxles::Axis_Y), gyro.GetAngle(GyroAxles::Axis_Z)
     );
     delay(20);
-  } else if(currentMenuState == RobotState::INFO_VISUAL){
-
-  } 
+  }
   
   else if (currentMenuState == RobotState::BT) {
     ble.connect();

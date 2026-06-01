@@ -210,13 +210,14 @@ void UserInterface::UpdateRunMenu() {
         display.setTextColor(0x3186);// Dark Grey  //Grey 0x8410
         display.setCursor(MAP_AREA_WIDTH + 25 + 30, 68);
         display.print("ALERT");
-        _lastCamAlert = camIsAlert;
+        
     }
+    _lastCamAlert = camIsAlert;
     
     //Cam left Enabled?
     bool camEnBuff = p_camera->IsEnabled(ErrorCodes::left);
     if(camEnBuff != _lastCamLeftEn){
-        _lastCamLeftEn = camEnBuff;
+        
 
         int16_t buffTxtColor =  _lastCamLeftEn ? TEXT_COLOR : 0x3186;
         int16_t buffColor =     _lastCamLeftEn ? 0x0320 : 0x8410;
@@ -228,11 +229,12 @@ void UserInterface::UpdateRunMenu() {
         display.setCursor(MAP_AREA_WIDTH + 20 + buffOffset, 118);
         display.print(buffTxt);
     }
+    _lastCamLeftEn = camEnBuff;
 
     //Cam Right Enabled?
     camEnBuff = p_camera->IsEnabled(ErrorCodes::right);
     if(camEnBuff != _lastCamRightEn){
-        _lastCamRightEn = camEnBuff;
+        
 
         int16_t buffTxtColor =  _lastCamRightEn ? TEXT_COLOR : 0x3186;
         int16_t buffColor =     _lastCamRightEn ? 0x0320 : 0x8410;
@@ -244,7 +246,8 @@ void UserInterface::UpdateRunMenu() {
         display.setCursor(MAP_AREA_WIDTH + 110 + buffOffset, 118);
         display.print(buffTxt);
     }
-    
+    _lastCamRightEn = camEnBuff;
+
     //Update
     display.setTextColor(0x3186, 0x8410);
     char buffer[2];
@@ -428,12 +431,14 @@ void UserInterface::ConstructSettingsMenu() {
     display.setCursor(150, 168);
     display.print("ColorSensor Calibration");
 
-    //Hintergrund
+    //Background for speed
     display.fillRect(150,64,200,84, BTN_COLOR);
 
-    // Alle Buttons malen (Der Text wird durch die Klasse automatisch zentriert!)
+    // Draw Buttons
     btnSpeedMinus.Draw(display, "-");
     btnSpeedPlus.Draw(display, "+");
+    display.fillRoundRect(150,91,280,60,10,BTN_COLOR);
+
     btnCalibWhite.Draw(display, "WHI");
     btnBleConnect.Draw(display, "BLE");
     
@@ -985,7 +990,7 @@ void UserInterface::Update(){
         }
 
         //Update speed:
-        display.setCursor(223, 94);
+        display.setCursor(283, 94);
         char buff[6];
         sprintf(buff, "%3d", driveSpeed);
         display.print(buff);

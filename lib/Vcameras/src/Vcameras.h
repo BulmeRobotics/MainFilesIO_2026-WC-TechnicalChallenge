@@ -24,9 +24,9 @@ private:
     // --- Hardware Info ---
     static constexpr unsigned long CAM_BAUD = 115200;
 
-    static constexpr uint8_t CAMERA_PIN_INT = 31;   //GPIO1 CM5
-    static constexpr uint8_t CAMERAL_PIN_EN = 29;   //GPIO2 CM5
-    static constexpr uint8_t CAMERAR_PIN_EN = 28;   //GPIO3 CM5
+    static constexpr uint8_t CAMERA_PIN_INT = 31;   //GPIO1 CM5 -> RASPI 17
+    static constexpr uint8_t CAMERAL_PIN_EN = 29;   //GPIO2 CM5 -> RASPI GPIO27
+    static constexpr uint8_t CAMERAR_PIN_EN = 28;   //GPIO3 CM5 -> RASPI GPIO22
 
     static constexpr uint32_t CAM_TIMEOUT = 300;
 
