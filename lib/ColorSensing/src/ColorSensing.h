@@ -78,6 +78,9 @@ class ColorSensing{
         static constexpr uint8_t MULTIPLEX_ADRESS = 0x70;
         static constexpr uint8_t LED_CURRENT      = 10;
 
+        static constexpr uint8_t REFL_CTRL = D6;
+        static constexpr uint8_t REFL_READ = A1;
+
     // --- Sensor Timings ---
     //  Total integration time will be (ATIME + 1) * (ASTEP + 1) * 2.78µS
         static constexpr uint16_t ATIME_Front     = 100;
@@ -120,6 +123,7 @@ class ColorSensing{
 
     // --- History ---
         #define WINDOW_SIZE 7
+        #define REFL_WINDOWS_SIZE 20
         #define NOISE_THRESHOLD 600
         #define FLICKER_MIN_COUNT 4
 
@@ -129,6 +133,9 @@ class ColorSensing{
         uint8_t historyIndex = 0;
         bool _checkpoint = false;
         void UpdateHistory(uint16_t f5, uint16_t f6, uint16_t f7);
+
+        uint16_t reflHistory[REFL_WINDOWS_SIZE];
+        uint8_t refl_index = 0;
 
     // --- Objects for CS ---
         EEPROM* _eeprom;

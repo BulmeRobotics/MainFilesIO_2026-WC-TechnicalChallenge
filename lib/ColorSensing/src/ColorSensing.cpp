@@ -59,8 +59,9 @@ uint8_t ColorSensing::Init(TwoWire* wire, UserInterface* ui, EEPROM* eeprom){
     _eeprom = eeprom;
     _ui = ui;
     uint8_t ebuff = 0;
-    TCA9548A(0);
 
+    // --- AS7341 FRONT ---
+    TCA9548A(0);
     if (!front.begin(0x39, wire, 0)) ebuff |= 1 << 0;
 	//LED
     if (!(ebuff & 0x01)) {
@@ -71,7 +72,7 @@ uint8_t ColorSensing::Init(TwoWire* wire, UserInterface* ui, EEPROM* eeprom){
     if (!front.setATIME(ATIME_Front))       ebuff |= 1 << 7;
     if (!front.setASTEP(ASTEP_Front))       ebuff |= 1 << 7;
 
-        //Middle Color Sensor
+    // --- AS7341 FRONT ---
     TCA9548A(1);
     if (!middle.begin(0x39, wire, 0))	ebuff |= 1 << 1;
 
@@ -84,7 +85,11 @@ uint8_t ColorSensing::Init(TwoWire* wire, UserInterface* ui, EEPROM* eeprom){
     if (!middle.setATIME(ATIME_Middle))     ebuff |= 1 << 6;
     if (!middle.setASTEP(ASTEP_Middle))     ebuff |= 1 << 6;
 
-    //EEPROM
+    // --- Reflective Sensor ---
+    pinMode(REFL_CTRL, OUTPUT);
+    pinMode(REFL_READ, INPUT);
+
+    // --- EEPROM ---
     _eeprom->ReadFromEEPROM(PoI_Type::white,      'F', (uint16_t*)&frontColorsCalibrated[WHITE]);
     _eeprom->ReadFromEEPROM(PoI_Type::black,      'F', (uint16_t*)&frontColorsCalibrated[BLACK]);
     _eeprom->ReadFromEEPROM(PoI_Type::blue,       'F', (uint16_t*)&frontColorsCalibrated[BLUE]);
@@ -161,16 +166,29 @@ void ColorSensing::UpdateHistory(uint16_t f5, uint16_t f6, uint16_t f7) {
 
 ErrorCodes ColorSensing::Update(){
     if(_READING){
+        digitalWrite(REFL_CTRL, HIGH); //Set Pin High  for Reflective 
+        // -- FRONT --
         TCA9548A(0);
         if(front.checkReadingProgress()){
             if(!_FREEZE_SENSOR) colorFront = checkFront();
             if(!front.startReading()) return ErrorCodes::ERROR;
         }
+        // -- MIDDLE --
         TCA9548A(1);
         if(middle.checkReadingProgress()){
             if(!_FREEZE_SENSOR) colorMiddle = checkMiddle();
             if(!middle.startReading()) return ErrorCodes::ERROR;
         }
+        // -- REFLECTIVE --
+        reflHistory[refl_index] = analogRead(REFL_READ);
+        if(_debugPort != nullptr) {
+            char buff[20];
+            snprintf(buff,sizeof(buff),"R: %4d", reflHistory[refl_index]);
+            _debugPort->println(buff);
+        }
+        refl_index++;
+        if(refl_index >= WINDOW_SIZE - 1) refl_index = 0;
+        digitalWrite(REFL_CTRL, LOW);
         return ErrorCodes::OK;
     }
     return ErrorCodes::disabled;
