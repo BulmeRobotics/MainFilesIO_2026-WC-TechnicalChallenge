@@ -585,22 +585,10 @@ uint8_t TofSensors::GetWalls(bool rampInfront, bool rampBehind) {
 }
 
 bool TofSensors::IsRampThere(bool side) {
-	uint16_t upper = side ? back.GetRange()     : front.GetRange();
-	uint16_t lower = side ? backWall.GetRange() : frontWall.GetRange();
-
-	if (upper > RAMP_MAX_DETECTION_DISTANCE || lower > RAMP_MAX_DETECTION_DISTANCE)
-		return false;
-
-	int16_t diff = static_cast<int16_t>(upper) - static_cast<int16_t>(lower);
-
-	#ifdef DEBUG_RAMP
-	Serial.print(side ? "BACK" : "FRONT");
-	Serial.print(" ramp  upper="); Serial.print(upper);
-	Serial.print("  lower="); Serial.print(lower);
-	Serial.print("  diff="); Serial.println(diff);
-	#endif
-
-	return diff >= RAMP_DIFF_THRESHOLD;
+	// Pending hardware change: front lower sensor to 3°, back lower sensor to 12° downward tilt.
+	// Re-enable once sensors are remounted and RAMP_DIFF_THRESHOLD is retuned (~60 mm).
+	(void)side;
+	return false;
 }
 
 #ifdef _MSC_VER
