@@ -253,14 +253,10 @@ void UserInterface::UpdateRunMenu() {
 
     //Update
     display.setTextColor(0x3186, 0x8410);
-    char buffer[2];
-    sprintf(buffer,"%1d",p_ejector->GetRemaining(ErrorCodes::left));
     display.setCursor(646, 168);
-    display.print(buffer);
-
-    sprintf(buffer,"%1d",p_ejector->GetRemaining(ErrorCodes::right));
+    display.print(constrain(p_ejector->GetRemaining(ErrorCodes::left),0,9));
     display.setCursor(736, 168);
-    display.print(buffer);
+    display.print(constrain(p_ejector->GetRemaining(ErrorCodes::right),0,9));
 
     // 2. COLOR SENSOR STATUS UPDATEN
     display.setTextColor(TEXT_COLOR);
