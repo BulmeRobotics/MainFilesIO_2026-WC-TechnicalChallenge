@@ -562,10 +562,12 @@ ErrorCodes Mapping::SetPriority(ErrorCodes priority) {
 }
 
 Instructionset Mapping::GetInstruction() {
-    if (path[pathIndex] == Instructionset::FinishedInstructions) {
+    if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
         if (_RETURN_HOME && currentPosition == 0) {
             return Instructionset::MazeFinished;
         }
+
+        _BumperTriggered = false;
 
         targetPosition = findNextTarget();
 
@@ -851,11 +853,15 @@ void Mapping::Reset(void) {
 //     std::cout << "=============================\n";
 // }
 
-ErrorCodes Mapping::Bumper(void) {
+ErrorCodes Mapping::Bumper(bool reset) {
     if (currentPosition >= MAX_TILES) return ErrorCodes::invalid;
 
-    int16_t neighborIndex = -1;
+    tiles[currentPosition].weight += COST_OBSTACLE / BUMPER_RESET_COUNTER;  //Increase Tile Traversing Cost
 
+    if(!reset) return ErrorCodes::OK;
+
+    _BumperTriggered = true;    //Set Bumper flag
+    int16_t neighborIndex = -1;
     // Finde heraus, in welche Richtung wir gerade schauen und kappe die Verbindung
     switch (currentOrientation) {
     case Orientations::North:

@@ -12,9 +12,10 @@
 #define MAX_INSTRUCTIONS 256
 
 #define COST_RAMP 5
-#define COST_BLUE 6
+#define COST_BLUE 7
 #define COST_DANGER_ZONE 8
-#define COST_OBSTACLE 7
+#define COST_OBSTACLE 10    //Cost of Obstacle when 5 times Bumper -> spread evenly 10 / 5 = 2 per Bump
+#define BUMPER_RESET_COUNTER 5
 #define COST_REGULAR 1
 
 #define RAMP_LENGTH_MOD 3
@@ -46,7 +47,7 @@ struct OpenItem {
 
 
 class Mapping {
-private:
+private:    // --- PRIVATE ---
 
 #ifdef _MSC_VER
 #pragma region helpers
@@ -90,27 +91,33 @@ private:
 #pragma region private vars
 #endif
 
+    // -- Map --
     Tile tiles[MAX_TILES];
     OpenItem open[MAX_TILES];
     bool closed[MAX_TILES];
 
+    // -- Path --
     Instructionset path[MAX_INSTRUCTIONS];
     uint16_t pathIndex;
 
+    // -- Position & Orientation --
     Orientations currentOrientation;
     uint16_t currentPosition, targetPosition;
 
-    //Checkpoint
+    // -- Checkpoint --
     Tile backupTiles[MAX_TILES];
     uint16_t lastCheckpointPosition;
     uint8_t resetCounter = 0;
 
-    //Config:
+    // -- Config --
     ErrorCodes pathPriority = ErrorCodes::straight;
     bool _RETURN_HOME = false;
     ErrorCodes _layerSetting = ErrorCodes::single;
 
-public:
+    // -- BUMPER --
+    bool _BumperTriggered = false;
+
+public: // --- PUBLIC ---
 
 #ifdef _MSC_VER
 #pragma region Information
@@ -215,7 +222,7 @@ public:
      * @brief call when Bumper is repeatedly triggered -> locks the current route
      * @return returns if operation was succesful
      */
-    ErrorCodes Bumper(void);
+    ErrorCodes Bumper(bool reset = true);
 
 #ifdef _MSC_VER
 #pragma region UI
