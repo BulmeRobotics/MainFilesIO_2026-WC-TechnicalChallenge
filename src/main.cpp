@@ -63,7 +63,7 @@ TofSensors tof;
 Mapping mapper;
 Drivetrain drivetrain;
 Driving robot;
-Vcameras cam/*(&ble)*/;
+Vcameras cam(&Serial);
 
 
 
