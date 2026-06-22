@@ -230,7 +230,7 @@ class Driving {
         #endif
         //----Behavior constants----
         static constexpr uint16_t MIN_SETTILE_TIME       = 750;
-        static constexpr uint16_t INCLINE_ARRAY_SIZE     = 250;
+        static constexpr uint16_t INCLINE_ARRAY_SIZE     = 450;   // ~10 s of incline data at a 25 ms loop (400 samples) plus margin
         static constexpr uint16_t REVERSE_BUMPER_TIMEOUT = 2000;
 
         //----Driving tuning----
@@ -340,6 +340,7 @@ class Driving {
         int16_t  inclineCycleCounter    = 0;
         uint16_t nonInclineCycleCounter = 0;
         uint32_t ts_rampStartTime       = 0;
+        uint32_t ts_rampTraversalStart  = 0;    // Preserved start (incline first detected) used to time ramp duration
         uint16_t rampCheckDuration      = DEFAULT_RAMP_CHECK_DURATION;
         uint8_t  rampSpeed;
         float    rampEncoderDistance;
@@ -350,6 +351,7 @@ class Driving {
         float    maxRampIncline;
         int16_t  currentRobotHeight;
         float    avgIncline             = 0.0f;
+        float    aggregatedIncline      = 0.0f;   // Total-variation jitter metric from CheckStairRamp; basis for logged GVar
         float    arrIncline[INCLINE_ARRAY_SIZE] = { 0.0f };
         uint16_t arrInclineIndex        = 0;
 
@@ -384,6 +386,7 @@ class Driving {
         void        UpdateInclineCounters(float incline);
         void        EvaluateRampDecision(void);
         void        RecordInclineSample(float incline);
+        float       ComputeMedianIncline(void);
         void        ClassifyAndFinishRamp(void);
         void        CalculateRampGeometry(bool rampUp, bool rampDown, bool isStair);
 

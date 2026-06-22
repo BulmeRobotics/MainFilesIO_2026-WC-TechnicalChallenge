@@ -13,6 +13,7 @@
 
 //#define DEBUG_RAMP
 // #define DEBUG_RAMP_ARRAY
+// #define DEBUG_RAMP_DATASET
 // #define DEBUG_X64
 //#define DEBUG_DRIVING
 // #define DEBUG_TURN
@@ -488,7 +489,7 @@ ErrorCodes Driving::RampHandler(void){
 }
 
 bool Driving::CheckStairRamp(void) {
-	float aggregatedIncline = 0.0;
+	aggregatedIncline = 0.0f;	// Reset each call so GVar does not accumulate across ramps
 	float sumIncline = 0.0;
 
 	for (int i = 0; i < arrInclineIndex - 1; i++) {
@@ -600,6 +601,7 @@ void Driving::EvaluateRampDecision(void){
 			_RAMP_UP   = true;
 			_RAMP_DOWN = false;
 			p_mapSys->Move(true);
+			ts_rampTraversalStart = ts_rampStartTime;	// Preserve start before reset, for duration logging
 			ts_rampStartTime    = 0;
 			rampEncoderDistance = 0;
 			rampSpeed           = RAMP_SPEED_UP;
@@ -621,6 +623,7 @@ void Driving::EvaluateRampDecision(void){
 				Serial.println("CORRECTED RAMP DOWN!");
 			}
 			p_mapSys->Move(true);
+			ts_rampTraversalStart = ts_rampStartTime;	// Preserve start before reset, for duration logging
 			ts_rampStartTime    = 0;
 			rampEncoderDistance = 0;
 			rampSpeed           = RAMP_SPEED_DOWN;
@@ -644,14 +647,44 @@ void Driving::EvaluateRampDecision(void){
 
 void Driving::RecordInclineSample(float incline){
 	// Appends the current incline reading to the sample array and tracks the peak incline.
+	if (arrInclineIndex >= INCLINE_ARRAY_SIZE) return;	// Overflow guard: drop samples beyond capacity
 	arrIncline[arrInclineIndex] = incline;
 	arrInclineIndex++;
 	if (_RAMP_UP   && incline >  maxRampIncline) maxRampIncline = incline;
 	else if (_RAMP_DOWN && incline <  maxRampIncline) maxRampIncline = incline;
 }
 
+float Driving::ComputeMedianIncline(void){
+	// Median of the recorded incline samples. Sorts arrIncline in place (order is no longer
+	// needed after classification and the array is cleared immediately after).
+	uint16_t n = arrInclineIndex;
+	if (n == 0) return 0.0f;
+
+	// Insertion sort: the robot is stopped here, so the one-shot cost is irrelevant.
+	for (uint16_t i = 1; i < n; i++) {
+		float key = arrIncline[i];
+		int16_t j = i - 1;
+		while (j >= 0 && arrIncline[j] > key) {
+			arrIncline[j + 1] = arrIncline[j];
+			j--;
+		}
+		arrIncline[j + 1] = key;
+	}
+
+	if (n & 1) return arrIncline[n / 2];
+	return (arrIncline[n / 2 - 1] + arrIncline[n / 2]) / 2.0f;	// Even N: average the two middle values
+}
+
 void Driving::ClassifyAndFinishRamp(void){
 	// Classifies stair vs smooth, finalises traversal, computes geometry, resets ramp state.
+
+	#ifdef DEBUG_RAMP_DATASET
+	// Dataset snapshot: raw (uncorrected) encoder distance and ramp duration, taken before
+	// FinishRamp drives on and before CalculateRampGeometry mutates rampEncoderDistance.
+	float    rawEncoderDistance = rampEncoderDistance;
+	uint32_t rampDuration       = millis() - ts_rampTraversalStart;
+	#endif
+
 	#ifdef DEBUG_RAMP_ARRAY
 	Serial.println("ARRAY");
 	for (uint8_t i = 0; i < arrInclineIndex; i++) {
@@ -659,11 +692,25 @@ void Driving::ClassifyAndFinishRamp(void){
 	}
 	#endif
 
-	if (CheckStairRamp()) {
+	if (CheckStairRamp()) {	// Sets avgIncline and aggregatedIncline
 		FinishRamp(75);
 		_STAIR = true;
 	}
 	else FinishRamp(80);
+
+	#ifdef DEBUG_RAMP_DATASET
+	// Ramp dataset line. Direction is read from the sign of Mean; Dur measures incline-onset
+	// (~10 deg) to flat-out (<=4 deg), not base-to-top.
+	float medianIncline = ComputeMedianIncline();
+	float gyroVar       = (arrInclineIndex > 1) ? (aggregatedIncline / (arrInclineIndex - 1)) : 0.0f;
+	Serial.print(F("RAMPDATA | Typ:"));
+	Serial.print(_STAIR ? F("Stair") : F("Ramp"));
+	Serial.print(F(" Dst:"));    Serial.print(rawEncoderDistance, 1);
+	Serial.print(F(" Dur:"));    Serial.print(rampDuration);
+	Serial.print(F("ms Mean:")); Serial.print(avgIncline, 1);
+	Serial.print(F(" Med:"));    Serial.print(medianIncline, 1);
+	Serial.print(F(" GVar:"));   Serial.println(gyroVar, 2);
+	#endif
 
 	for (uint16_t i = 0; i < INCLINE_ARRAY_SIZE; i++) arrIncline[i] = 0.0;
 
