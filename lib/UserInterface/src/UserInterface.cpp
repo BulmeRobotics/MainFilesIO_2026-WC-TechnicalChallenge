@@ -1018,8 +1018,8 @@ void UserInterface::Update(){
                 BuzzerSignal(5,0,1);
                 ErrorCodes newRamp = ErrorCodes::single;
                 if(p_mapping->GetSetting(ErrorCodes::ramp) == ErrorCodes::single) newRamp = ErrorCodes::multi;
-                p_mapping->SetSettings(p_mapping->GetSetting(ErrorCodes::layer), newRamp);
-                btnRampSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "short" : "dynamic");
+                p_mapping->SetSettings(p_mapping->GetSetting(ErrorCodes::ramp), newRamp);
+                btnRampSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::ramp) == ErrorCodes::single) ? "short" : "dynamic");
             }
 
             //Speed
