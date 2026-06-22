@@ -87,6 +87,12 @@ private:    // --- PRIVATE ---
      */
     ErrorCodes compareWalls(uint8_t walls);
 
+    /**
+     * @brief Commits a staged checkpoint (updates lastCheckpointPosition and snapshots backupTiles).
+     *        No-op if no checkpoint is pending.
+     */
+    void CommitPendingCheckpoint(void);
+
 #ifdef _MSC_VER
 #pragma region private vars
 #endif
@@ -108,6 +114,10 @@ private:    // --- PRIVATE ---
     Tile backupTiles[MAX_TILES];
     uint16_t lastCheckpointPosition;
     uint8_t resetCounter = 0;
+    // Deferred-commit guard: a detected checkpoint is staged here and only committed once the
+    // robot reaches the next tile (proving it did not roll back off a decline at the lip).
+    bool     _checkpointPending        = false;
+    uint16_t pendingCheckpointPosition = 0;
 
     // -- Config --
     ErrorCodes pathPriority = ErrorCodes::straight;

@@ -360,7 +360,15 @@ ErrorCodes Mapping::Ramp(ErrorCodes direction, uint8_t length) {
     return ErrorCodes::OK;
 }
 
+void Mapping::CommitPendingCheckpoint(void){
+    if (!_checkpointPending) return;
+    lastCheckpointPosition = pendingCheckpointPosition;
+    memcpy(backupTiles, tiles, sizeof(tiles));
+    _checkpointPending = false;
+}
+
 void Mapping::RollbackOne(){
+    _checkpointPending = false;   // Discard a checkpoint staged on the tile being rolled back (lip false-positive)
     if(pathIndex >= 1) pathIndex-= 1;
     uint16_t pos = currentPosition;
     Move(false);
@@ -417,13 +425,17 @@ ErrorCodes Mapping::SetTile(uint8_t walls, TileType floor) {
     //Check for valid floor
     if (floor < TileType::visited || floor > TileType::black) return ErrorCodes::invalid;
 
-    //check checkpoint
+    // Reaching this (valid) SetTile proves the robot did not roll back off a decline since the
+    // previous tile, so any checkpoint staged there is genuine — commit it now.
+    CommitPendingCheckpoint();
+
+    // Stage (do not yet commit) a checkpoint detected on THIS tile. It is committed at the next
+    // SetTile, or discarded by RollbackOne if a down-ramp rolls this tile back (lip false-positive).
     if (floor == TileType::checkpoint) {
         if (resetCounter > 0 || currentPosition != lastCheckpointPosition) {
-            lastCheckpointPosition = currentPosition;
-			memcpy(backupTiles, tiles, sizeof(tiles));
+            _checkpointPending        = true;
+            pendingCheckpointPosition = currentPosition;
         }
-
     }
 
     //Check if tile was already visited:
