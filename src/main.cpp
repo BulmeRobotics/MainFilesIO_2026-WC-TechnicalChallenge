@@ -406,7 +406,7 @@ while (true) {
 				int8_t rampDirection = 0;
 
 				//Calculate RAMP INFOS
-				rampLenght = (robot.GetRampLength() / 300);	//Calculate num of Tiles
+				rampLenght = ((robot.GetRampLength() + 150) / 300);	//Num of tiles, round-to-nearest (+half tile) — boundary at 450mm, not 600
         if (rampLenght == 0 && robot.GetRampLength() >= 100)
           rampLenght = 1;
 				//Determine RAMP Direction
