@@ -13,6 +13,10 @@ enum class RunState : uint8_t {
     INITIAL, SETTILE, GET_INSTRUCTIONS, CHECKPOINT_RESET, END, TURN, ALIGN, CHECK_DRIVE, DRIVE, RAMP, SCAN,
 };
 
+enum class TileAction : uint8_t {
+    IGNORE, STOP_AND_WAIT_5S, REVERSE
+};
+
 enum class ErrorCodes : uint8_t {
     OK, ERROR, UNKNOWN,
     TIMEOUT,

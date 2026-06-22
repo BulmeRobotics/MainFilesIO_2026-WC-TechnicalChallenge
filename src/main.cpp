@@ -305,14 +305,7 @@ while (true) {
         //Drive Forward Logic
         //Blue Tile:
         if (cs.GetFloor() == TileType::blue) {
-          //Stoppen
-          robot.EndDrive();
-          UI.ShowPopup("BLUE TILE", ErrorCodes::info);
-          uint32_t time = millis();
-          while(millis() <= time + 5000){
-            UI.Update();
-            delay(480);
-          }
+          ExecTileBehavior(TileAction::STOP_AND_WAIT_5S);
           //Weiterfahren
         }
         currentRunState = RunState::DRIVE;
@@ -507,21 +500,8 @@ void cyclicRunTask() {
   #endif
 
   //Black Tile Handling
-	if(cs.GetFloor() == TileType::black) {
-		robot.EndDrive();	//Stop Robot
-		//UI.signal.buzzer_pulse(5, 3);	//Signal BLACK
-    mapper.Move(true);
-		mapper.SetTile(0x0F, TileType::black);
-		mapper.Move(false);	//Move robot Backwards
-
-		//DRIVE BACKWARDS FUNCTION
-		robot.ReverseBlackTile();
-		for(uint8_t i = 0; i < 5; i++){
-			cs.Update();	//Update ColorSensors
-			delay(5);
-		}
-		currentRunState = RunState::SETTILE;	//SetTile again
-	}
+	if(cs.GetFloor() == TileType::black) 
+		ExecTileBehavior(TileAction::REVERSE);
 
   //Drive Slower if FRONT detects change
 	if(cs.GetAlert() && !cs.Freeze())
@@ -559,6 +539,42 @@ void ISR_BTN_GRAY() {
 		lastButtonPressGray = millis();
 	}
 }
+
+void ExecTileBehavior(TileAction action){
+  switch(action){
+    case TileAction::REVERSE:
+      robot.EndDrive();	//Stop Robot
+      //UI.signal.buzzer_pulse(5, 3);	//Signal BLACK
+      mapper.Move(true);
+      mapper.SetTile(0x0F, TileType::black);
+      mapper.Move(false);	//Move robot Backwards
+
+      //DRIVE BACKWARDS FUNCTION
+      robot.ReverseBlackTile();
+      for(uint8_t i = 0; i < 5; i++){
+        cs.Update();	//Update ColorSensors
+        delay(5);
+      }
+      currentRunState = RunState::SETTILE;	//SetTile again
+    break;
+
+    case TileAction::STOP_AND_WAIT_5S:
+      //Stoppen
+      robot.EndDrive();
+      UI.ShowPopup("BLUE TILE", ErrorCodes::info);
+      uint32_t time = millis();
+      while(millis() <= time + 5000){
+        UI.Update();
+        delay(480);
+      }
+    break;
+
+    case TileAction::IGNORE:
+    default:
+    break;
+  }
+}
+
 
 #ifdef VISUAL_STUDIO
   #pragma endregion Functions //-------------------------------------------------------------------
