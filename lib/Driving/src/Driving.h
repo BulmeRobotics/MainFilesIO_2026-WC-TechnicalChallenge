@@ -196,6 +196,8 @@ class Driving {
             #pragma region Getters
         #endif
         bool         IsOnRamp(void)            const { return _ON_RAMP; }
+        // True while a ramp is being evaluated (incline crossed threshold, decision pending) but not yet confirmed
+        bool         IsRampDetecting(void)     const { return !_ON_RAMP && ts_rampStartTime != 0; }
         float        GetRampHeight(void)       const { return rampHeight; }
         float        GetRampLength(void)       const { return rampLength; }
         int16_t      GetCurrentRobotHeight(void) const { return currentRobotHeight; }

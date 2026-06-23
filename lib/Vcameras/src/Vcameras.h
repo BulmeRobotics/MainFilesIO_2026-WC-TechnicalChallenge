@@ -29,7 +29,7 @@ private:
     static constexpr uint8_t CAMERAR_PIN_EN = 28;   //GPIO3 CM5 -> RASPI GPIO22
 
     static constexpr uint32_t CAM_TIMEOUT = 300;
-    static constexpr uint32_t CAM_TIMEOUT_INIT = 60000;
+    static constexpr uint32_t CAM_TIMEOUT_INIT = 30000;
 
     //Serial
     static constexpr UART* _cam = &Serial2;
@@ -58,6 +58,7 @@ private:
     bool _Alert = false;
     bool _oldRed = false;
     bool _oldOnRamp = false;
+    bool _rampSuppressed = false;	// true while on a ramp or while one is being detected — gates victim acting and IsAlert()
 
     // Enable command state per camera (allows concurrent non-blocking left/right updates)
     bool _pending = false;
@@ -108,11 +109,11 @@ public:
     /**
      * @brief camera handler has to be called periodically
      * @param onRed is robot on Red Tile?
-     * @param wallL is a wall Left?
-     * @param wallR is a wall Right?
+     * @param onRamp is robot on a confirmed ramp? (disables cams + suppresses victim acting)
+     * @param rampDetecting is a ramp currently being detected? (suppresses victim acting without disabling cams)
      * @return ErrorCodes for debugging
      */
-    ErrorCodes Update(bool onRed, bool onRamp = false);
+    ErrorCodes Update(bool onRed, bool onRamp = false, bool rampDetecting = false);
 
     /**
      * @brief Getter if Cam is enabled
@@ -135,6 +136,7 @@ public:
      * @return true...ALERT, false...not ALERT
      */
     bool IsAlert(){
+        if(_rampSuppressed) return false;	// No cam alert while on/detecting a ramp — must not bias driving (slow-speed)
         return _Alert;
     }
 
