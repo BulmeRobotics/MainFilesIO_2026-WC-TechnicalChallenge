@@ -214,6 +214,7 @@ class ColorSensing{
 
         /**
          * @brief returns if the front sensor registers not White
+         * @note returns false while frozen (ramp/turn) regardless of last reading
          * @return _ALERT: true...not white; false...white
          */
         bool GetAlert();

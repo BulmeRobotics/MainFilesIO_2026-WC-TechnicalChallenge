@@ -193,6 +193,7 @@ TileType ColorSensing::GetFloor(){
 }
 
 bool ColorSensing::GetAlert(){
+    if(_FREEZE_SENSOR) return false;	// No drive-alert while frozen (ramp/turn) — prevents slow-speed sticking on stale _ALERT
     return _ALERT;
 }
 
