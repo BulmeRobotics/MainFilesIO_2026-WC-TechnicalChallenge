@@ -836,16 +836,22 @@ ErrorCodes Driving::BumperHandler(void){
 				saveDistance = p_drivetrain->GetEncoderDistance();
 			}
 
+			uint32_t maneuverStart = millis();
+
 			ExecuteBumperManeuver();
 
 			StartAlign();
 			StartAdjustment();
+
+			uint32_t elapsed = millis() - maneuverStart;
+			ts_driveStartTime += (elapsed + 200); // Exclude recovery time + delay from drive time limit
 
 			if (sensor.type == ReferenceObj::ENCODER) {
 				p_drivetrain->ResetEncoder(saveDistance);
 			}
 			integralError   = 0;
 			derivativeError = 0;
+			ts_lastPID      = 0; // Reset PID timestamp to prevent derivative kick
 
 			return ErrorCodes::OK;
 		}

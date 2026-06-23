@@ -74,17 +74,17 @@ uint8_t Mapping::correctWallinfo(uint8_t walls, Orientations orientation) {
 ErrorCodes Mapping::compareWalls(uint8_t walls) {
     if (currentPosition >= MAX_TILES) return ErrorCodes::invalid;
 
-    auto bit = [&](uint8_t b)->bool { return (walls & (1U << b)) != 0U; };
+    auto checkBit = [&](uint8_t b)->bool { return (walls & (1U << b)) != 0U; };
 
     bool b_north = (tiles[currentPosition].north == -1);
     bool b_east = (tiles[currentPosition].east == -1);
     bool b_south = (tiles[currentPosition].south == -1);
     bool b_west = (tiles[currentPosition].west == -1);
 
-    if (b_north != bit(0)) return ErrorCodes::invalid;
-    if (b_east != bit(1)) return ErrorCodes::invalid;
-    if (b_south != bit(2)) return ErrorCodes::invalid;
-    if (b_west != bit(3)) return ErrorCodes::invalid;
+    if (b_north != checkBit(0)) return ErrorCodes::invalid;
+    if (b_east != checkBit(1)) return ErrorCodes::invalid;
+    if (b_south != checkBit(2)) return ErrorCodes::invalid;
+    if (b_west != checkBit(3)) return ErrorCodes::invalid;
 
     return ErrorCodes::OK;
 }
@@ -977,7 +977,7 @@ bool Mapping::DoesTileMatchWalls(uint16_t tileIndex, uint8_t absWalls) {
     // Ungültige oder unerforschte Felder verwerfen
     if(tiles[tileIndex].type == TileType::inactive || tiles[tileIndex].type == TileType::unexplored) return false;
 
-    auto bit = [&](uint8_t b)->bool { return (absWalls & (1U << b)) != 0U; };
+    auto checkBit = [&](uint8_t b)->bool { return (absWalls & (1U << b)) != 0U; };
 
     // Da unerforschte Richtungen bereits auf -1 stehen, entspricht -1 exakt einer physischen Wand.
     bool b_north = (tiles[tileIndex].north == -1);
@@ -985,10 +985,10 @@ bool Mapping::DoesTileMatchWalls(uint16_t tileIndex, uint8_t absWalls) {
     bool b_south = (tiles[tileIndex].south == -1);
     bool b_west  = (tiles[tileIndex].west == -1);
 
-    if (b_north != bit(0)) return false;
-    if (b_east  != bit(1)) return false;
-    if (b_south != bit(2)) return false;
-    if (b_west  != bit(3)) return false;
+    if (b_north != checkBit(0)) return false;
+    if (b_east  != checkBit(1)) return false;
+    if (b_south != checkBit(2)) return false;
+    if (b_west  != checkBit(3)) return false;
 
     return true;
 }
