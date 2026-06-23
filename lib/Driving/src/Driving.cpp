@@ -775,7 +775,9 @@ void Driving::CalculateRampGeometry(bool rampUp, bool rampDown, bool isStair){
 	}
 	else if (rampDown && isStair) {
 		rampEncoderDistance = rampEncoderDistance * STAIR_DOWN_K + STAIR_DOWN_D;
-		rampAngle = medianIncline;	// Median (negative for down) — accurate, no fudge offset
+		rampAngle = medianIncline;	// Median (negative for down)
+		// 1-tile steep stair-down reads ~2.6° shallow; steepen it (corrected hyp ~330 vs ~650). Affects height, not tile count.
+		if (rampEncoderDistance < STAIR_DOWN_1TILE_HYP_MAX) rampAngle -= STAIR_DOWN_1TILE_OFFSET;
 		#ifdef DEBUG_RAMP
 		Serial.print("\tSTAIR DOWN");
 		#endif

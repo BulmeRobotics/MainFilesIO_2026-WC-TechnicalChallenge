@@ -258,6 +258,9 @@ class Driving {
         static constexpr float   STAIR_UP_D              = 27.2f;
         static constexpr float   STAIR_DOWN_K            = 1.582f;	// Joint fit over 1+2 tile stair-down (median estimator)
         static constexpr float   STAIR_DOWN_D            = -227.0f;
+        // 1-tile steep stair-down only: short plateau lets the exit transition drag the median ~2.6° shallow.
+        static constexpr float   STAIR_DOWN_1TILE_OFFSET = 2.6f;	// Subtracted from |angle| to recover true incline
+        static constexpr float   STAIR_DOWN_1TILE_HYP_MAX = 490.0f;	// Corrected-hyp threshold below which it's a 1-tile descent (330 vs 650)
 
         //----Drive PID tuning----
         // ZN: Ku=10.0, Tu=0.3s → P=0.6*Ku, I=2*P/Tu, D=P*Tu/8; dt_nominal: clamp threshold = 70ms
