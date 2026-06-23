@@ -26,9 +26,16 @@ ErrorCodes Vcameras::Init(Ejector* ejector, Mapping* mapper, Driving* robot, Use
 
     String str;
 
-    _cam->print("<I>");
-    str = Recieve(CAM_TIMEOUT_INIT);
-    _connected = (str.indexOf("OK") != -1) ? true : false;
+    uint8_t repeats = CAM_TIMEOUT_INIT / CAM_TIMEOUT;
+    for (uint8_t i = 0; i < repeats; i++)
+    {
+        _cam->print("<I>");
+        str = Recieve(CAM_TIMEOUT);
+        _connected = (str.indexOf("OK") != -1) ? true : false;
+        if (str.indexOf("OK") != -1) break;
+    }
+    
+    
 
     if(!_connected) return ErrorCodes::no_connection;
     return ErrorCodes::OK;  
