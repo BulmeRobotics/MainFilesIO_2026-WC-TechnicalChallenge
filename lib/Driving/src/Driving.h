@@ -275,7 +275,7 @@ class Driving {
         static constexpr int8_t  TURN_CAM_SPEED  = 30;   // ceiling when camera is flagging a victim
 
         //----Bumper config----
-        static constexpr uint8_t BUMPER_TRYS      = 7;
+        static constexpr uint8_t BUMPER_TRYS      = 5;
         static constexpr uint8_t BUMPER_LEFT_PIN  = 47;
         static constexpr uint8_t BUMPER_RIGHT_PIN = 45;
 
