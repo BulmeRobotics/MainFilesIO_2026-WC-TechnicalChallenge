@@ -374,6 +374,7 @@ ErrorCodes Driving::StartAdjustment(void) {
 	p_tof->Update();
 	if (p_tof->GetRange(TofType::FRONT) > 120)	return ErrorCodes::ERROR;
 
+	uint32_t startTime = millis();
 	int8_t posError;
 	do {
 		p_tof->Update();
@@ -381,7 +382,7 @@ ErrorCodes Driving::StartAdjustment(void) {
 		int8_t adjustSpeed = posError * ADJUSTMENT_SPEED_FACTOR;	// Calculate adjustment speed
 
 		p_drivetrain->SetSpeed(adjustSpeed);
-	} while (abs(posError) > 10);	// Wait until within tolerance
+	} while (abs(posError) > 10 && millis() - startTime < ADJUSTMENT_TIMEOUT);	// Within tolerance or timeout (abort on stall)
 
 	p_drivetrain->Stop();
 	return ErrorCodes::OK;
@@ -390,11 +391,14 @@ ErrorCodes Driving::StartAdjustment(void) {
 ErrorCodes Driving::ReverseBlackTile(void) {
 	p_drivetrain->EnableEncoder();
 	p_drivetrain->ResetEncoder();
-	while (p_drivetrain->GetEncoderDistance() < 170) {	// Drive back ~17 cm
+	ts_encoderStartTime = millis();
+	// Drive back ~17 cm; abort if the encoder stalls (blocked wheel) so the robot never reverses forever
+	while (p_drivetrain->GetEncoderDistance() < 170 && millis() < (ts_encoderStartTime + DEFAULT_MAX_ENCODER_TIME)) {
 		p_drivetrain->SetSpeed(-30);
 	}
 	p_drivetrain->Stop();
 	p_drivetrain->DisableEncoder();	// Disable motor interrupts
+	if (millis() >= (ts_encoderStartTime + DEFAULT_MAX_ENCODER_TIME)) return ErrorCodes::TIMEOUT;
 	return ErrorCodes::OK;
 }
 

@@ -232,6 +232,7 @@ class Driving {
         static constexpr uint16_t MIN_SETTILE_TIME       = 750;
         static constexpr uint16_t INCLINE_ARRAY_SIZE     = 450;   // ~10 s of incline data at a 25 ms loop (400 samples) plus margin
         static constexpr uint16_t REVERSE_BUMPER_TIMEOUT = 2000;
+        static constexpr uint16_t ADJUSTMENT_TIMEOUT     = 1500;  // max time to settle to the front-wall distance before a turn
 
         //----Driving tuning----
         static constexpr uint8_t TOF_SIDE_WALL_THRESHOLD = 170;

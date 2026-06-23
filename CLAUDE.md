@@ -110,7 +110,6 @@ Rule of thumb: if the change touches more than one library or introduces a new p
 
 ## Known Issues (pending fixes)
 
-- **ISR race condition** (`main.cpp`): `currentMenuState`, `currentRunState`, `_CHECKPOINT` are written in ISRs but not declared `volatile`. At higher optimization levels the compiler may cache them in registers and the main loop will never see ISR writes.
 - **Ramp direction tautology** (`main.cpp`, `SCAN` state): `if(robot.GetCurrentRobotHeight() < robot.GetCurrentRobotHeight() + robot.GetRampHeight())` always reduces to `0 < GetRampHeight()` — `GetCurrentRobotHeight()` cancels out. Should be `if (robot.GetRampHeight() > 0)` / `< 0`.
 - **Dead flag** (`main.cpp`): `_ROBOT_TURNING` is set in all four `GET_INSTRUCTIONS` turn cases but never read anywhere.
 - **`ErrorCodes` god-enum** (`CustomDatatypes.h`): mixes error states, cardinal directions, popup severity, ejector state, and checkpoint flow control in one enum. Long-term maintenance risk.
