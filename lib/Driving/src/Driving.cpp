@@ -624,7 +624,9 @@ void Driving::EvaluateRampDecision(void){
 			_RAMP_UP   = false;
 			if (millis() < ts_lastSetTile + MIN_SETTILE_TIME) {
 				p_mapSys->RollbackOne();
+				#ifdef DEBUG_RAMP
 				Serial.println("CORRECTED RAMP DOWN!");
+				#endif
 			}
 			p_mapSys->Move(true);
 			ts_rampTraversalStart = ts_rampStartTime;	// Preserve start before reset, for duration logging
