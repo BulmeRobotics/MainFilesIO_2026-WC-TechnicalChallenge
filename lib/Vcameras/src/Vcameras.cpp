@@ -35,8 +35,6 @@ ErrorCodes Vcameras::Init(Ejector* ejector, Mapping* mapper, Driving* robot, Use
         if (str.indexOf("OK") != -1) break;
     }
     
-    
-
     if(!_connected) return ErrorCodes::no_connection;
     return ErrorCodes::OK;  
 }
