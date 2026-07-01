@@ -22,15 +22,20 @@ Ordering rationale: incline-flat is checked first, so a genuinely completed ramp
 ## Recovery (Driving)
 
 New private helper `ReverseOffRamp()`:
-- Drive **backwards** until incline returns flat (`±4°`), guarded by an encoder-distance / `DEFAULT_MAX_ENCODER_TIME` limit so a stuck gyro cannot reverse the robot out of the maze.
-- Then mirror the normal ramp-exit cleanup **exactly**, minus geometry:
-  - re-enable bumpers (`EnableBumpers`)
+- **Phase 1** — drive backwards at `RAMP_DEADEND_REV_SPEED` (= `RAMP_SPEED_DOWN`, so it matches the normal ramp-down speed) until incline returns flat (`±4°`), guarded by `RAMP_DEADEND_REV_TIMEOUT` (6 s, generous for a 2-tile ramp) so a stuck gyro cannot reverse the robot out of the maze.
+- **Phase 2 (only if flat was actually reached)** — reverse a further fixed `RAMP_DEADEND_CENTER_MM` (150 mm, tune on hardware) onto the already-visited/free pre-ramp tile so the robot ends **centred** on it. `StartAlign` only squares heading, not fore/aft, so this explicit step is what fulfils "center in the tile".
+- Then mirror the normal ramp-exit cleanup (run regardless of outcome so bumpers/colour are never left disabled), minus geometry:
+  - re-enable bumpers (`EnableBumpers`), `StartAlign()`
   - unfreeze colour sensing (`p_colorSensing->Freeze(false)`)
   - clear the incline sample array (`arrInclineIndex = 0`)
-  - `ClearOnRamp()`, `SetMaxRampIncline(0)`
+  - `ClearOnRamp()`, `maxRampIncline = 0`, `_RAMP_UP/_RAMP_DOWN/_STAIR = false`
   - **No height change** — the robot returns to the same level it started on.
 
-`RampHandler` returns a new `ErrorCodes::RAMP_DEAD_END`.
+`ReverseOffRamp` returns `OK` if it reached flat, `TIMEOUT` otherwise. `RampHandler` returns `ErrorCodes::RAMP_DEAD_END` **only** when `ReverseOffRamp` returned `OK` — so the map is never marked black while the robot is still stranded on the ramp.
+
+## Enable / disable
+
+Guarded by a runtime flag `_RAMP_DEADEND_ENABLED` (default `false`), set via `robot.EnableRampDeadEnd(bool)`. main.cpp enables it in `setup()` under `#define RAMP_DEADEND_RECOVERY` (comment out the define to disable the whole feature). Detection is only attempted when the flag is set.
 
 ## Mapping — no new method, reuse the black-tile path
 
@@ -54,8 +59,10 @@ Capture `RampHandler()`'s return once:
 
 ## New symbols
 
-- `ErrorCodes::RAMP_DEAD_END` (CustomDatatypes.h)
-- `Driving::ReverseOffRamp()` (private), plus a debounce counter member + `RAMP_DEADEND_FRONT_MM = 100` / `RAMP_DEADEND_DEBOUNCE = 3` constants
+- `ErrorCodes::RAMP_DEAD_END` — **appended at the end** of the enum so no persisted/transmitted raw code value shifts (EEPROM stores colour calibration + main speed only, but end-append is free insurance).
+- `Driving::DetectRampDeadEnd()` + `ReverseOffRamp()` (private), `deadEndCounter` + `_RAMP_DEADEND_ENABLED` members, `EnableRampDeadEnd(bool)` setter.
+- Constants: `RAMP_DEADEND_FRONT_MM = 100`, `RAMP_DEADEND_DEBOUNCE = 3`, `RAMP_DEADEND_REV_SPEED = RAMP_SPEED_DOWN`, `RAMP_DEADEND_REV_TIMEOUT = 6000`, `RAMP_DEADEND_CENTER_MM = 150`.
+- `#define RAMP_DEADEND_RECOVERY` toggle in main.cpp.
 
 ## Out of scope
 

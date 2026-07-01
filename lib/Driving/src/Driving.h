@@ -214,6 +214,7 @@ class Driving {
         void SetRobotTargetAngle(Orientations a)        { robotTargetAngle = a; }
         void SetSlowSpeed(bool s)                       { _SLOW_SPEED = s; }
         void SetLastSetTile(uint32_t t)                 { ts_lastSetTile = t; }
+        void EnableRampDeadEnd(bool enable)             { _RAMP_DEADEND_ENABLED = enable; }
 
         #ifdef _MSC_VER
             #pragma endregion
@@ -265,9 +266,11 @@ class Driving {
         static constexpr float   STAIR_DOWN_1TILE_HYP_MAX = 490.0f;	// Corrected-hyp threshold below which it's a 1-tile descent (330 vs 650)
 
         //----Dead-end ramp (wall at the top) recovery----
-        static constexpr uint8_t RAMP_DEADEND_FRONT_MM  = 100;	// Front ToF distance flagging a wall-terminated up-ramp
-        static constexpr uint8_t RAMP_DEADEND_DEBOUNCE  = 3;	// Consecutive cycles all trigger conditions must hold
-        static constexpr uint8_t RAMP_DEADEND_REV_SPEED = 30;	// Reverse speed when backing off a dead-end ramp
+        static constexpr uint8_t  RAMP_DEADEND_FRONT_MM  = 100;	// Front ToF distance flagging a wall-terminated up-ramp
+        static constexpr uint8_t  RAMP_DEADEND_DEBOUNCE  = 3;	// Consecutive cycles all trigger conditions must hold
+        static constexpr uint8_t  RAMP_DEADEND_REV_SPEED = RAMP_SPEED_DOWN;	// Match the normal ramp-down speed
+        static constexpr uint16_t RAMP_DEADEND_REV_TIMEOUT = 6000;	// Generous bound for reversing a 2-tile ramp back to flat
+        static constexpr uint8_t  RAMP_DEADEND_CENTER_MM = 150;	// Extra reverse after flat to centre on the pre-ramp tile (tune on hardware)
 
         //----Drive PID tuning----
         // ZN: Ku=10.0, Tu=0.3s → P=0.6*Ku, I=2*P/Tu, D=P*Tu/8; dt_nominal: clamp threshold = 70ms
@@ -365,6 +368,7 @@ class Driving {
         float    arrIncline[INCLINE_ARRAY_SIZE] = { 0.0f };
         uint16_t arrInclineIndex        = 0;
         uint8_t  deadEndCounter         = 0;    // Debounce for wall-terminated up-ramp detection
+        bool     _RAMP_DEADEND_ENABLED  = false; // Dead-end ramp recovery; toggled from main.cpp
 
         //----Drive PID state----
         float integralError   = 0.0f;

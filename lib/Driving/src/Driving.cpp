@@ -435,13 +435,27 @@ ErrorCodes Driving::ReverseOffRamp(void){
 		p_drivetrain->SetSpeed(-RAMP_DEADEND_REV_SPEED);
 		p_gyro->GetAngleAdvanced(0, GyroAxles::Axis_Z);
 		incline = -p_gyro->data.angle_car;
-	} while ((incline > 4 || incline < -4) && millis() < (ts_encoderStartTime + DEFAULT_MAX_ENCODER_TIME));
+	} while ((incline > 4 || incline < -4) && millis() < (ts_encoderStartTime + RAMP_DEADEND_REV_TIMEOUT));
+
+	bool reachedFlat = (incline <= 4 && incline >= -4);	// Distinguish real flat from the time-guard abort
+
+	// Once flat at the ramp base, reverse a further fixed distance onto the (already-visited, free)
+	// pre-ramp tile so the robot sits centred there — StartAlign only squares heading, not fore/aft.
+	if (reachedFlat) {
+		p_drivetrain->ResetEncoder();
+		ts_encoderStartTime = millis();
+		while (p_drivetrain->GetEncoderDistance() < RAMP_DEADEND_CENTER_MM &&
+		       millis() < (ts_encoderStartTime + DEFAULT_MAX_ENCODER_TIME)) {
+			p_drivetrain->SetSpeed(-RAMP_DEADEND_REV_SPEED);
+		}
+	}
 
 	p_drivetrain->Stop();
 	p_drivetrain->DisableEncoder();
 
 	// Mirror the normal ramp-exit cleanup (ClassifyAndFinishRamp + FinishRamp + SCAN state), without
-	// the geometry/height update — the level is unchanged.
+	// the geometry/height update — the level is unchanged. Done regardless of outcome so bumpers and
+	// colour sensing are never left disabled.
 	_RAMP_UP       = false;
 	_RAMP_DOWN     = false;
 	_STAIR         = false;
@@ -453,7 +467,7 @@ ErrorCodes Driving::ReverseOffRamp(void){
 	EnableBumpers();
 	StartAlign();
 
-	return ErrorCodes::OK;
+	return reachedFlat ? ErrorCodes::OK : ErrorCodes::TIMEOUT;
 }
 
 TOF_Optimal_Value Driving::GetOptimalSensor(bool rampDown){
@@ -545,10 +559,12 @@ ErrorCodes Driving::RampHandler(void){
 
 		// Dead-end up-ramp: a wall at the top means the ramp never flattens onto a tile. Detected
 		// only while still inclined (flat exits above), so a normal ramp with a wall on the landing
-		// is unaffected. Reverse back down and let main.cpp mark the ramp entrance black.
-		if (_RAMP_UP && DetectRampDeadEnd()) {
-			ReverseOffRamp();
-			return ErrorCodes::RAMP_DEAD_END;
+		// is unaffected. Reverse back down and let main.cpp mark the ramp entrance black — but only
+		// if the reverse actually reached flat ground (otherwise the map/position would be wrong).
+		if (_RAMP_DEADEND_ENABLED && _RAMP_UP && DetectRampDeadEnd()) {
+			if (ReverseOffRamp() == ErrorCodes::OK) return ErrorCodes::RAMP_DEAD_END;
+			// Reverse timed out before reaching flat; ramp state is already cleaned up. Fall through
+			// without marking black rather than mislabelling the map.
 		}
 	}
 	return ErrorCodes::OK;

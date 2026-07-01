@@ -26,7 +26,6 @@ enum class ErrorCodes : uint8_t {
     BUMPER_WALL,
     BUMPER_DISABLED,
     RAMP_END,
-    RAMP_DEAD_END,
     TURNED,
     NOT_ALIGNING,
     CHECK_DRIVE,
@@ -38,7 +37,8 @@ enum class ErrorCodes : uint8_t {
     empty,               //ejector
     already_found, no_connection,
     start, stop, ready, //Checkpoint
-    ramp, layer
+    ramp, layer,
+    RAMP_DEAD_END       //Appended at end: keep raw values stable for any persisted/transmitted codes
 };
 
 #ifdef _MSC_VER

@@ -21,6 +21,7 @@
 // #define TURN_TUNE_MODE       // Uncomment to enable alternating-90° turn PID tuning harness
 // #define DEBUG_LOOP_TIMING    // Uncomment to print per-subsystem timing in cyclicMainTask/cyclicRunTask
 // #define RAMP_TEST_MODE       // Uncomment to test ramp detection (loops IsRampThere front+back; pair with DEBUG_RAMP)
+#define RAMP_DEADEND_RECOVERY   // Comment out to disable reversing off wall-terminated up-ramps + marking the entrance black
 
 #ifdef _MSC_VER
   #pragma endregion Defines
@@ -162,6 +163,9 @@ int main(void) {
 
   //----Robot----
   robot.Init(&cs, &tof, &gyro, &mapper, &cam ,&drivetrain);
+  #ifdef RAMP_DEADEND_RECOVERY
+    robot.EnableRampDeadEnd(true);
+  #endif
   UI.AddInfoMsg("Driving", "OK", true);
   UI.AddInfoMsg("Drivetrain", "OK", true);
 
