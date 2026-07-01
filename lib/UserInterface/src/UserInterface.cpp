@@ -168,6 +168,7 @@ void UserInterface::ConstructAboutMenu(){
 // ------------------------------------------------------------------
 
 void UserInterface::ConstructRunMenu() {
+    SetIllumination(0,0,0,255);
     display.fillScreen(BG_COLOR); // Komplettes Display schwarz für die Karte
     
     // Hintergrund für das rechte Panel
@@ -1120,7 +1121,29 @@ void UserInterface::SetIllumination(uint8_t red, uint8_t green, uint8_t blue, ui
         pixels.setPixelColor(i, red, green, blue, white);
         pixels.show();
     }
+}
 
+void UserInterface::ShowFlag(){
+    uint8_t pixelBuff = pixelNum/2;
+    pixels.clear();
+
+    for(uint8_t i = 0; i < pixelBuff; i++){
+        if(i < pixelBuff/3 || i >= (pixelBuff * 2) / 3)
+            pixels.setPixelColor(i,255,0,0,0);
+        else
+            pixels.setPixelColor(i,0,0,0,255);
+
+        pixels.show();
+    }
+
+    for(uint8_t i = 0; i < pixelBuff; i++){
+        if(i < pixelBuff/3 || i >= (pixelBuff * 2) / 3)
+            pixels.setPixelColor(i+pixelBuff,255,0,0,0);
+        else
+            pixels.setPixelColor(i+pixelBuff,0,0,0,255);
+
+        pixels.show();
+    }
 }
 
 bool UserInterface::Signal(ErrorCodes type, uint16_t time_on_ms, uint16_t time_off_ms, uint8_t repetitions){

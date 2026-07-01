@@ -264,6 +264,11 @@ public:
     void SetIllumination(uint8_t red, uint8_t green, uint8_t blue, uint8_t white);
 
     /**
+     * @brief Show Austrian Flag on Camera LEDs
+     */
+    void ShowFlag();
+
+    /**
      * @brief Gets the Battery Charge Level in Percent
      * @return Charge Level (0-100)
      */

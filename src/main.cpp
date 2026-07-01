@@ -54,7 +54,7 @@
 #endif
 
 //----Objects----
-UserInterface UI(100); // Update Interval: 50ms
+UserInterface UI(100); // Update Interval: 100ms
 BLE_UART ble;
 EEPROM eeprom;
 ColorSensing cs/*(&ble)*/;
@@ -460,6 +460,7 @@ while (true) {
       cam.Enable(false);
       currentMenuState = RobotState::ABOUT;
       UI.Update();
+      UI.ShowFlag();
       //Signal End of Run 
       UI.Signal(ErrorCodes::BUZZER_LED, 1000,1000,2);
       UI.Signal(ErrorCodes::LED, 1000,1000, 3);
