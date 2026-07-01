@@ -32,23 +32,30 @@ New private helper `ReverseOffRamp()`:
 
 `RampHandler` returns a new `ErrorCodes::RAMP_DEAD_END`.
 
-## Mapping
+## Mapping — no new method, reuse the black-tile path
 
-New public method `Mapping::MarkRampDeadEnd()`:
-- Rolls the robot position back to the pre-ramp tile (same movement bookkeeping as `RollbackOne`).
-- Marks the ramp-base (entrance) tile `TileType::black`, `weight = 255`, so A* treats it as impassable and never routes onto the ramp again.
+At ramp **entry**, `EvaluateRampDecision` already calls `p_mapSys->Move(true)` (Driving.cpp:607), so the mapper is already standing on the ramp tile. `Ramp()` (which creates the z-link) only runs later in SCAN and is never reached on a dead end. `Move()` never changes z — only `Ramp()` does. So the ramp tile is still an ordinary `unexplored` tile at the same z.
+
+Therefore the dead-end is identical to the existing "drove into a black tile" case (`ExecTileBehavior(TileAction::REVERSE)`), minus the forward move which already happened. No `RollbackOne`, no new Mapping method. The `RAMP_DEAD_END` handler in main.cpp does:
+
+```cpp
+mapper.SetTile(0x0F, TileType::black);  // mapper already on ramp tile; marks it black (weight 255)
+mapper.Move(false);                     // step mapper back to the pre-ramp tile
+currentRunState = RunState::SETTILE;
+```
+
+`SetTile` on the still-`unexplored` ramp tile cleanly sets `type=black, weight=255`, so A* treats it as impassable and never routes onto the ramp again.
 
 ## main.cpp wiring (DRIVE state)
 
 Capture `RampHandler()`'s return once:
 - `RAMP_END`  → `SCAN` (unchanged normal path).
-- `RAMP_DEAD_END` → call `mapper.MarkRampDeadEnd()`, then → `SETTILE` (skips the normal `SCAN` / `mapper.Ramp` geometry path).
+- `RAMP_DEAD_END` → `mapper.SetTile(0x0F, black)` + `mapper.Move(false)`, then → `SETTILE` (skips the normal `SCAN` / `mapper.Ramp` geometry path).
 
 ## New symbols
 
 - `ErrorCodes::RAMP_DEAD_END` (CustomDatatypes.h)
 - `Driving::ReverseOffRamp()` (private), plus a debounce counter member + `RAMP_DEADEND_FRONT_MM = 100` / `RAMP_DEADEND_DEBOUNCE = 3` constants
-- `Mapping::MarkRampDeadEnd()` (public)
 
 ## Out of scope
 
