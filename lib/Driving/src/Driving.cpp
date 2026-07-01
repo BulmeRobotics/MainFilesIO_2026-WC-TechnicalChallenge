@@ -11,7 +11,7 @@
 #pragma region DEBUG
 #endif
 
-#define DEBUG_RAMP
+// #define DEBUG_RAMP
 // #define DEBUG_RAMP_ARRAY
 // #define DEBUG_RAMP_DATASET
 // #define DEBUG_X64
