@@ -46,7 +46,7 @@ private:
     //Reset after detection
     bool _victimFound = false;
     uint32_t _timeFound;
-    static constexpr uint32_t DEACT_TIME_VICTIM = 1700;
+    static constexpr uint32_t DEACT_TIME_VICTIM = 1000;
     ErrorCodes HandleReset();
 
     // --- Interface ---
