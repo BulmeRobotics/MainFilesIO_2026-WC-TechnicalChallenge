@@ -563,12 +563,12 @@ uint8_t TofSensors::GetWalls(void) {
 	bool rampInfront = IsRampThere(false);
 	bool rampBehind  = IsRampThere(true);
 
-	if (leftBack.GetRange() < 150
-		&& leftFront.GetRange() < 150) wallInfo |= (1 << 3);	// Left
-	if (rightBack.GetRange() < 150
-		&& rightFront.GetRange() < 150) wallInfo |= (1 << 1);	// Right
-	if (back.GetRange() < 150 && !rampBehind) wallInfo |= (1 << 2);	// Back
-	if (front.GetRange() < 150 && !rampInfront) wallInfo |= (1 << 0);	// Front
+	if (leftBack.GetRange() < 160
+		&& leftFront.GetRange() < 160) wallInfo |= (1 << 3);	// Left
+	if (rightBack.GetRange() < 160
+		&& rightFront.GetRange() < 160) wallInfo |= (1 << 1);	// Right
+	if (back.GetRange() < 160 && !rampBehind) wallInfo |= (1 << 2);	// Back
+	if (front.GetRange() < 160 && !rampInfront) wallInfo |= (1 << 0);	// Front
 
 	#ifdef DEBUG_SCAN
 		Serial.print("Wall Info: ");
