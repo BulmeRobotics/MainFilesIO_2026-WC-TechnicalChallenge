@@ -215,6 +215,7 @@ class Driving {
         void SetSlowSpeed(bool s)                       { _SLOW_SPEED = s; }
         void SetLastSetTile(uint32_t t)                 { ts_lastSetTile = t; }
         void EnableRampDeadEnd(bool enable)             { _RAMP_DEADEND_ENABLED = enable; }
+        void EnableRampAbortShort(bool enable)          { _RAMP_ABORT_SHORT_ENABLED = enable; }
 
         #ifdef _MSC_VER
             #pragma endregion
@@ -271,6 +272,9 @@ class Driving {
         static constexpr uint8_t  RAMP_DEADEND_REV_SPEED = RAMP_SPEED_DOWN;	// Match the normal ramp-down speed
         static constexpr uint16_t RAMP_DEADEND_REV_TIMEOUT = 6000;	// Generous bound for reversing a 2-tile ramp back to flat
         static constexpr uint8_t  RAMP_DEADEND_CENTER_MM = 150;	// Extra reverse after flat to centre on the pre-ramp tile (tune on hardware)
+
+        //----Spurious (too-short) ramp abort----
+        static constexpr uint16_t RAMP_ABORT_SHORT_MM = 75;	// Raw on-ramp encoder travel below this = false ramp (e.g. a bumper twitch), not a real one (tune on hardware)
 
         //----Drive PID tuning----
         // ZN: Ku=10.0, Tu=0.3s → P=0.6*Ku, I=2*P/Tu, D=P*Tu/8; dt_nominal: clamp threshold = 70ms
@@ -369,6 +373,7 @@ class Driving {
         uint16_t arrInclineIndex        = 0;
         uint8_t  deadEndCounter         = 0;    // Debounce for wall-terminated up-ramp detection
         bool     _RAMP_DEADEND_ENABLED  = false; // Dead-end ramp recovery; toggled from main.cpp
+        bool     _RAMP_ABORT_SHORT_ENABLED = false; // Spurious too-short ramp abort; toggled from main.cpp
 
         //----Drive PID state----
         float integralError   = 0.0f;
@@ -406,6 +411,7 @@ class Driving {
         void        CalculateRampGeometry(bool rampUp, bool rampDown, bool isStair);
         bool        DetectRampDeadEnd(void);
         ErrorCodes  ReverseOffRamp(void);
+        void        AbortShortRamp(void);
 
         //----Bumper helpers----
         ErrorCodes  HandleWallCollision(void);

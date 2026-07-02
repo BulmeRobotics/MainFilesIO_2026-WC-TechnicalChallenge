@@ -39,7 +39,8 @@ enum class ErrorCodes : uint8_t {
     start, stop, ready, //Checkpoint
     ramp, layer,
     RAMP_DEAD_END,       //Appended at end: keep raw values stable for any persisted/transmitted codes
-    BUZZER, LED, BUZZER_LED
+    BUZZER, LED, BUZZER_LED,
+    RAMP_ABORTED         //Spurious too-short ramp; appended at true end to keep raw values stable
 };
 
 #ifdef _MSC_VER

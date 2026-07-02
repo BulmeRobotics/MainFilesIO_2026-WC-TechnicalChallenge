@@ -22,6 +22,7 @@
 // #define DEBUG_LOOP_TIMING    // Uncomment to print per-subsystem timing in cyclicMainTask/cyclicRunTask
 // #define RAMP_TEST_MODE       // Uncomment to test ramp detection (loops IsRampThere front+back; pair with DEBUG_RAMP)
 #define RAMP_DEADEND_RECOVERY   // Comment out to disable reversing off wall-terminated up-ramps + marking the entrance black
+#define RAMP_ABORT_SHORT        // Comment out to disable aborting spurious too-short ramps (e.g. a bumper knock) without FinishRamp/Align
 
 #ifdef _MSC_VER
   #pragma endregion Defines
@@ -165,6 +166,9 @@ int main(void) {
   robot.Init(&cs, &tof, &gyro, &mapper, &cam ,&drivetrain);
   #ifdef RAMP_DEADEND_RECOVERY
     robot.EnableRampDeadEnd(true);
+  #endif
+  #ifdef RAMP_ABORT_SHORT
+    robot.EnableRampAbortShort(true);
   #endif
   UI.AddInfoMsg("Driving", "OK", true);
   UI.AddInfoMsg("Drivetrain", "OK", true);
@@ -409,6 +413,13 @@ while (true) {
           // the ramp tile (Move(true) at ramp entry), so mark it black and step back — same as the
           // drove-into-a-black-tile path. Skips the normal SCAN / mapper.Ramp geometry.
           mapper.SetTile(0x0F, TileType::black);
+          mapper.Move(false);
+          currentRunState = RunState::SETTILE;
+        }
+        else if (rampSave == ErrorCodes::RAMP_ABORTED) {
+          // Spurious ramp (too short — likely a bumper knock). No FinishRamp/Align ran. The mapper
+          // advanced onto the "ramp" tile at entry, so just step it back and re-scan — no black mark
+          // (it was never a real obstacle) and no SCAN / mapper.Ramp geometry.
           mapper.Move(false);
           currentRunState = RunState::SETTILE;
         }

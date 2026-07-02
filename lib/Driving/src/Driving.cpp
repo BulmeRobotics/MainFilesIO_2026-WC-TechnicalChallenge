@@ -470,6 +470,23 @@ ErrorCodes Driving::ReverseOffRamp(void){
 	return reachedFlat ? ErrorCodes::OK : ErrorCodes::TIMEOUT;
 }
 
+void Driving::AbortShortRamp(void){
+	// A false ramp was detected (too little on-ramp travel). Tear down ramp state the same way
+	// ClassifyAndFinishRamp/FinishRamp would, but WITHOUT FinishRamp's forward drive, StartAlign, or
+	// CalculateRampGeometry — the robot must not lunge forward into whatever tilted it, no geometry is
+	// valid, and no level change occurred. Bumpers and colour sensing are restored so nothing is left
+	// disabled. main.cpp steps the map back off the ramp tile on ErrorCodes::RAMP_ABORTED.
+	_RAMP_UP        = false;
+	_RAMP_DOWN      = false;
+	_STAIR          = false;
+	deadEndCounter  = 0;
+	arrInclineIndex = 0;
+	maxRampIncline  = 0;
+	ClearOnRamp();
+	p_colorSensing->Freeze(false);
+	EnableBumpers();
+}
+
 TOF_Optimal_Value Driving::GetOptimalSensor(bool rampDown){
 	// Selects the best reference sensor (front/back/encoder) for the upcoming drive segment.
 	TOF_Optimal_Value result;
@@ -553,6 +570,15 @@ ErrorCodes Driving::RampHandler(void){
 		if (incline <= 4 && incline >= -4) {
 			rampEncoderDistance = p_drivetrain->GetEncoderDistance();
 			EndDrive();
+
+			// Spurious ramp: too little travel between incline onset and flat-out means this was never a
+			// real ramp (e.g. a bumper knock briefly tilted the robot). Skip FinishRamp/StartAlign — which
+			// would drive forward into whatever caused it — and abort cleanly so main can step the map back.
+			if (_RAMP_ABORT_SHORT_ENABLED && rampEncoderDistance < RAMP_ABORT_SHORT_MM) {
+				AbortShortRamp();
+				return ErrorCodes::RAMP_ABORTED;
+			}
+
 			ClassifyAndFinishRamp();
 			return ErrorCodes::RAMP_END;
 		}
