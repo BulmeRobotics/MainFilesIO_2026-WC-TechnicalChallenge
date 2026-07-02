@@ -213,6 +213,12 @@ class ColorSensing{
         TileType GetFloor();
 
         /**
+         * @brief returns current floor type using middle Sensor BLOCKING OPERATION!
+         * @return current floor type as PoI_Type
+         */
+        TileType GetFloorBlocking();
+
+        /**
          * @brief returns if the front sensor registers not White
          * @note returns false while frozen (ramp/turn) regardless of last reading
          * @return _ALERT: true...not white; false...white

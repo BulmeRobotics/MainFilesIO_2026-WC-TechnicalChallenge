@@ -192,6 +192,17 @@ TileType ColorSensing::GetFloor(){
     else return floor;
 }
 
+TileType ColorSensing::GetFloorBlocking(){
+    EnableRead(false);
+    TCA9548A(1);
+    middle.startReading();
+    while(!middle.checkReadingProgress()) delay(1); //Wait for AS7431 to finish reading
+    TileType returnBuffer = checkMiddle();
+
+    if(_debugPort) _debugPort->println("CS: " + String((uint8_t)returnBuffer));
+    return returnBuffer;
+}
+
 bool ColorSensing::GetAlert(){
     if(_FREEZE_SENSOR) return false;	// No drive-alert while frozen (ramp/turn) — prevents slow-speed sticking on stale _ALERT
     return _ALERT;
@@ -274,7 +285,7 @@ TileType ColorSensing::checkMiddle(){
     printDebugData(colorRaw, 'M');
     
     //Checkpoint
-    if(_checkpoint && colorRaw[7] < 38000 && colorRaw[4] > 59000) return TileType::checkpoint;
+    if((_checkpoint || !_READING) && colorRaw[7] < 38000 && colorRaw[4] > 59000) return TileType::checkpoint;
 
     //Blau:
     if(colorRaw[8] < 40000){
