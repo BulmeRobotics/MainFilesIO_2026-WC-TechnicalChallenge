@@ -139,7 +139,7 @@ private:
     Ejector* p_ejector = nullptr;
 
     // --- States ---
-    ErrorCodes driveMode;
+    ErrorCodes driveMode = ErrorCodes::straight;
     RobotState* p_state = nullptr;
     RobotState lastState = RobotState::BOOT;
     bool _lastCamAlert = false;

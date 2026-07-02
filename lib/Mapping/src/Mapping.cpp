@@ -100,6 +100,8 @@ uint16_t Mapping::findNextTarget() {
     else if (pathPriority == ErrorCodes::south) bufferPriority = Orientations::South;
     else if (pathPriority == ErrorCodes::west) bufferPriority = Orientations::West;
 
+    bufferPriority = currentOrientation;
+    
 	int16_t n = tiles[currentPosition].north,
             e = tiles[currentPosition].east,
             s = tiles[currentPosition].south,
@@ -107,6 +109,7 @@ uint16_t Mapping::findNextTarget() {
     //Buffer for neighboring tile index
 
     if(_debugPort){
+        _debugPort->print("priority: " + String((pathPriority == ErrorCodes::straight) ? "straight" : "other"));
         _debugPort->print("buffer priority: ");
         _debugPort->println((uint8_t)bufferPriority);
     }
