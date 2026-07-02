@@ -93,19 +93,23 @@ uint16_t Mapping::findNextTarget() {
     if (currentPosition >= MAX_TILES) return UINT16_MAX;
 
     uint16_t bufferTargetIndex = UINT16_MAX;
-    Orientations bufferPriority = Orientations::North;
-
-    if (pathPriority == ErrorCodes::straight) bufferPriority = currentOrientation;
-    else if (pathPriority == ErrorCodes::north) bufferPriority = Orientations::North;
+    Orientations bufferPriority = currentOrientation;
+    
+    if (pathPriority == ErrorCodes::north) bufferPriority = Orientations::North;
     else if (pathPriority == ErrorCodes::east) bufferPriority = Orientations::East;
     else if (pathPriority == ErrorCodes::south) bufferPriority = Orientations::South;
     else if (pathPriority == ErrorCodes::west) bufferPriority = Orientations::West;
 
 	int16_t n = tiles[currentPosition].north,
-        e = tiles[currentPosition].east,
-        s = tiles[currentPosition].south,
-        w = tiles[currentPosition].west;
+            e = tiles[currentPosition].east,
+            s = tiles[currentPosition].south,
+            w = tiles[currentPosition].west;
     //Buffer for neighboring tile index
+
+    if(_debugPort){
+        _debugPort->print("buffer priority: ");
+        _debugPort->println((uint8_t)bufferPriority);
+    }
 
     switch (bufferPriority)
     {
@@ -140,6 +144,7 @@ uint16_t Mapping::findNextTarget() {
     }
 
 	if (bufferTargetIndex == UINT16_MAX) {  //no unexplored neighboring tile found, search for any unexplored tile in memory
+        if(_debugPort) _debugPort->println("BFS Search");
         //BFS-Search for nearest target
 		uint16_t queue[MAX_TILES];
         bool visited[MAX_TILES];        // Markiert bereits überprüfte Felder

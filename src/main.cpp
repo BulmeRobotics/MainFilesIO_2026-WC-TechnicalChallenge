@@ -62,7 +62,7 @@ ColorSensing cs/*(&ble)*/;
 GyroBNO055 gyro;
 Ejector ejector;
 TofSensors tof;
-Mapping mapper;
+Mapping mapper(&ble);
 Drivetrain drivetrain;
 Driving robot;
 Vcameras cam/*(&Serial)*/;

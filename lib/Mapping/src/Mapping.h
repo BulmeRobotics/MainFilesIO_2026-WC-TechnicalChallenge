@@ -70,6 +70,9 @@ private:    // --- PRIVATE ---
     void MovePanicCandidates(Orientations dir);
     Instructionset GetPanicInstruction();
 
+    //Debug
+    Stream* _debugPort;
+
 
 #ifdef _MSC_VER
 #pragma region helpers
@@ -155,6 +158,8 @@ public: // --- PUBLIC ---
 #ifdef _MSC_VER
 #pragma region Information
 #endif
+
+    Mapping(Stream* debug_ifc = nullptr) : _debugPort(debug_ifc) {}
 
     /**
      * @brief Set the priority of searching for next Tile
