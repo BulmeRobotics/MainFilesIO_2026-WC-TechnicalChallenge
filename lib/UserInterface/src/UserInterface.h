@@ -184,6 +184,9 @@ private:
     Button btnRampSetting = Button(325, 362, 165, 70, BTN_COLOR, TEXT_COLOR, 3, nullptr);
 
     Button btnVictimSetting = Button(560, 362, 145, 70, BTN_COLOR, TEXT_COLOR,3, nullptr);
+    Button btnShowSettings =     Button(500, 64, 145, 70, 0, 0, 3, nullptr);
+
+    bool _ShowSettings = false;
 
 // --- Functions ---
     // -- Main Menu --

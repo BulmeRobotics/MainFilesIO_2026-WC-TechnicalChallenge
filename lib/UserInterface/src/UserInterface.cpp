@@ -472,6 +472,8 @@ void UserInterface::ConstructSettingsMenu() {
     btnBleConnect.Draw(display, "BLE");
     
     // -- Mapping Settings --
+    if(!_ShowSettings) return;
+
     display.fillRoundRect(140, 320, 370, 150, 10, HL_COLOR);
     display.setTextSize(3);
     display.setTextColor(TEXT_COLOR, HL_COLOR);
@@ -479,8 +481,6 @@ void UserInterface::ConstructSettingsMenu() {
     display.print("Map: LAYER | RAMP");
     btnLayerSetting.Draw    (display,(p_mapping->GetSetting(ErrorCodes::layer)  == ErrorCodes::single) ? "single" : "multi");
     btnRampSetting.Draw     (display, RampSettingLabel(p_mapping->GetSetting(ErrorCodes::ramp)));
-
-    
     btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
 }
 
@@ -1035,33 +1035,37 @@ void UserInterface::Update(){
 
         // Update Buttons
         if(touched){
-            //Layer Settings
-            if(btnLayerSetting.IsPressed(tx,ty)){
-                Signal(ErrorCodes::BUZZER, 5,0,1);
-                ErrorCodes newLayer = ErrorCodes::single;
-                if(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) newLayer = ErrorCodes::multi;
-                p_mapping->SetSettings(newLayer, p_mapping->GetSetting(ErrorCodes::ramp));
-                btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "single" : "multi");
-            }
-
-            if(btnVictimSetting.IsPressed(tx,ty)){
-                Signal(ErrorCodes::BUZZER, 5,0,1);
-                p_camera->SetShowInvalid(!p_camera->GetShowInvalid());
-                btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
-            }
-
-            if(btnRampSetting.IsPressed(tx,ty)){
-                Signal(ErrorCodes::BUZZER, 5,0,1);
-                // Cycle short -> dynamic -> off -> short. "off" (disabled) stops ramp detection entirely (see main.cpp DRIVE).
-                ErrorCodes newRamp;
-                switch(p_mapping->GetSetting(ErrorCodes::ramp)){
-                    case ErrorCodes::single: newRamp = ErrorCodes::multi;    break;	// short   -> dynamic
-                    case ErrorCodes::multi:  newRamp = ErrorCodes::disabled; break;	// dynamic -> off
-                    default:                 newRamp = ErrorCodes::single;   break;	// off     -> short
+            if(_ShowSettings){
+                //Layer Settings
+                if(btnLayerSetting.IsPressed(tx,ty)){
+                    Signal(ErrorCodes::BUZZER, 5,0,1);
+                    ErrorCodes newLayer = ErrorCodes::single;
+                    if(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) newLayer = ErrorCodes::multi;
+                    p_mapping->SetSettings(newLayer, p_mapping->GetSetting(ErrorCodes::ramp));
+                    btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "single" : "multi");
                 }
-                p_mapping->SetSettings(p_mapping->GetSetting(ErrorCodes::layer), newRamp);
-                btnRampSetting.Draw(display, RampSettingLabel(p_mapping->GetSetting(ErrorCodes::ramp)));
+
+                if(btnVictimSetting.IsPressed(tx,ty)){
+                    Signal(ErrorCodes::BUZZER, 5,0,1);
+                    p_camera->SetShowInvalid(!p_camera->GetShowInvalid());
+                    btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
+                }
+
+                if(btnRampSetting.IsPressed(tx,ty)){
+                    Signal(ErrorCodes::BUZZER, 5,0,1);
+                    // Cycle short -> dynamic -> off -> short. "off" (disabled) stops ramp detection entirely (see main.cpp DRIVE).
+                    ErrorCodes newRamp;
+                    switch(p_mapping->GetSetting(ErrorCodes::ramp)){
+                        case ErrorCodes::single: newRamp = ErrorCodes::multi;    break;	// short   -> dynamic
+                        case ErrorCodes::multi:  newRamp = ErrorCodes::disabled; break;	// dynamic -> off
+                        default:                 newRamp = ErrorCodes::single;   break;	// off     -> short
+                    }
+                    p_mapping->SetSettings(p_mapping->GetSetting(ErrorCodes::layer), newRamp);
+                    btnRampSetting.Draw(display, RampSettingLabel(p_mapping->GetSetting(ErrorCodes::ramp)));
+                }
             }
+
+            if(btnShowSettings.IsPressed(tx,ty)) _ShowSettings = !_ShowSettings;
 
             //Speed
             if(btnSpeedMinus.IsPressed(tx,ty) && driveSpeed > 10){
