@@ -1075,7 +1075,10 @@ void UserInterface::Update(){
                 }
             }
 
-            if(btnShowSettings.IsPressed(tx,ty)) _ShowSettings = !_ShowSettings;
+            if(btnShowSettings.IsPressed(tx,ty)) {
+                _ShowSettings = !_ShowSettings;
+                ConstructSettingsMenu();
+            }
 
             //Speed
             if(btnSpeedMinus.IsPressed(tx,ty) && driveSpeed > 10){
