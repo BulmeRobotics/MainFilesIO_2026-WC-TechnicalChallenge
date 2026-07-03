@@ -298,9 +298,16 @@ class Driving {
         //----Turn PID tuning----
         // Empirically tuned; dt_nominal: clamp threshold = 6ms (ToF disabled during turn → ~3ms loop)
         static constexpr PID_Coefficients PID_TURN  = { 3.0f, 15.0f, 0.025f, 0.003f };
-        static constexpr int8_t  TURN_MAX_SPEED  = 75;   // normal turn ceiling
+        static constexpr int8_t  TURN_MAX_SPEED  = 90;   // normal turn ceiling
         static constexpr int8_t  TURN_180_SPEED  = 60;   // 180° ceiling — camera frame rate limit
-        static constexpr int8_t  TURN_CAM_SPEED  = 30;   // ceiling when camera is flagging a victim
+        static constexpr int8_t  TURN_CAM_SPEED  = 60;   // ceiling when camera is flagging a victim
+
+        //----Turn stall escalation----
+        // A capped turn (cam alert / 180°) can stall on a floor obstacle: P saturates the output,
+        // conditional integration freezes I, and D is zero without motion — so the ceiling is
+        // temporarily raised to TURN_MAX_SPEED until rotation resumes (tune on hardware).
+        static constexpr uint16_t STALL_CHECK_INTERVAL = 300;   // ms between rotation-progress checks
+        static constexpr float    STALL_MIN_PROGRESS   = 3.0f;  // ° per interval below which the turn counts as stalled
 
         //----Bumper config----
         static constexpr uint8_t BUMPER_TRYS      = 5;
@@ -402,6 +409,12 @@ class Driving {
         float integralTurnError = 0.0f;
         float turnLastError     = 0.0f;
         long  ts_lastTurnPID    = 0;
+
+        //----Turn stall state----
+        uint32_t ts_stallCheck    = 0;
+        float    stallCheckAngle  = 0.0f;
+        bool     _STALL_BOOST     = false;
+        bool     _TURN_SATURATED  = false;
         #ifdef _MSC_VER
             #pragma endregion
             #pragma region Helpers

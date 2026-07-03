@@ -53,6 +53,9 @@ ErrorCodes Driving::StartTurn(float angle) {
 	integralTurnError = 0.0f;
 	turnLastError     = 0.0f;
 	ts_lastTurnPID    = 0;
+	ts_stallCheck     = 0;
+	_STALL_BOOST      = false;
+	_TURN_SATURATED   = false;
 	p_tof->DisableUpdate();
 	return ErrorCodes::OK;
 }
@@ -90,7 +93,27 @@ ErrorCodes Driving::ControlTurn(float angle) {
 		float derivative = (error - turnLastError) / dt;
 		float rawOutput  = PID_TURN.P * error + PID_TURN.I * integralTurnError + PID_TURN.D * derivative;
 
-		int8_t limit = _TURN_180_DEGREE ? TURN_180_SPEED : (camAlert ? TURN_CAM_SPEED : TURN_MAX_SPEED);	// 180° turns keep their fixed ceiling regardless of camera alert
+		int8_t baseLimit = _TURN_180_DEGREE ? TURN_180_SPEED : (camAlert ? TURN_CAM_SPEED : TURN_MAX_SPEED);	// 180° turns keep their fixed ceiling regardless of camera alert
+
+		// Stall escalation: a saturated output with no rotation progress means the robot is stuck
+		// (e.g. on a speed bump) — raise the ceiling to TURN_MAX_SPEED until rotation resumes
+		if (ts_stallCheck == 0) {
+			ts_stallCheck   = millis();
+			stallCheckAngle = p_gyro->data.angle_abs;
+		}
+		else if (millis() - ts_stallCheck >= STALL_CHECK_INTERVAL) {
+			float progress = p_gyro->data.angle_abs - stallCheckAngle;
+			if (progress >  180.0f) progress -= 360.0f;	// unwrap across 0°/360°
+			if (progress < -180.0f) progress += 360.0f;
+
+			_STALL_BOOST    = _TURN_SATURATED && (abs(progress) < STALL_MIN_PROGRESS);
+			ts_stallCheck   = millis();
+			stallCheckAngle = p_gyro->data.angle_abs;
+		}
+
+		int8_t limit    = _STALL_BOOST ? TURN_MAX_SPEED : baseLimit;
+		_TURN_SATURATED = abs(rawOutput) >= (float)baseLimit;
+
 		if (abs(rawOutput) < (float)limit) integralTurnError += error * dt;
 		turnLastError = error;
 
@@ -101,6 +124,7 @@ ErrorCodes Driving::ControlTurn(float angle) {
 			Serial.print("\tI:"); Serial.print(integralTurnError, 2);
 			Serial.print("\tD:"); Serial.print(derivative, 2);
 			Serial.print("\tC:"); Serial.print(turnSpeed);
+			Serial.print("\tB:"); Serial.print(_STALL_BOOST);
 			Serial.print("\tdt:"); Serial.print(dt * 1000.0f, 1);
 			Serial.print("\tR:"); Serial.println(rawDt * 1000.0f, 1);
 		#endif
