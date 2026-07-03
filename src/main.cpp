@@ -1,7 +1,7 @@
 /**
 * @authors: Vincent Rohkamm, Florian Wiesner
 * @date: 18.11.2025
-* @description: Main program file for the robot
+* @description: Main program file for the robot Technical
 */
 
 #ifdef _MSC_VER
