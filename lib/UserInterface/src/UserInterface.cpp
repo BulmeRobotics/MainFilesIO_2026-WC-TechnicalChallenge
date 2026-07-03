@@ -477,8 +477,11 @@ void UserInterface::ConstructSettingsMenu() {
     display.setTextColor(TEXT_COLOR, HL_COLOR);
     display.setCursor(150,330);
     display.print("Map: LAYER | RAMP");
-    btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer)  == ErrorCodes::single) ? "single" : "multi");
-    btnRampSetting.Draw (display, RampSettingLabel(p_mapping->GetSetting(ErrorCodes::ramp)));
+    btnLayerSetting.Draw    (display,(p_mapping->GetSetting(ErrorCodes::layer)  == ErrorCodes::single) ? "single" : "multi");
+    btnRampSetting.Draw     (display, RampSettingLabel(p_mapping->GetSetting(ErrorCodes::ramp)));
+
+    
+    btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
 }
 
 #ifdef _MSC_VER
@@ -1041,6 +1044,12 @@ void UserInterface::Update(){
                 btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "single" : "multi");
             }
 
+            if(btnVictimSetting.IsPressed(tx,ty)){
+                Signal(ErrorCodes::BUZZER, 5,0,1);
+                p_camera->SetShowInvalid(!p_camera->GetShowInvalid());
+                btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
+            }
+
             if(btnRampSetting.IsPressed(tx,ty)){
                 Signal(ErrorCodes::BUZZER, 5,0,1);
                 // Cycle short -> dynamic -> off -> short. "off" (disabled) stops ramp detection entirely (see main.cpp DRIVE).
@@ -1093,7 +1102,8 @@ void UserInterface::Update(){
             else if(btnBleConnect.IsPressed(tx,ty) && _BLE_ENABLED){
                 Signal(ErrorCodes::BUZZER, 5, 0, 1);
                 *p_state = RobotState::BT;
-            }            
+            }         
+        
         }
     }
 

@@ -67,6 +67,9 @@ private:
     uint32_t _enStart = 0;
     String _rxAsync = "";
 
+    // -- SETTING ---
+    bool _ShowInvalid = false;
+
     ErrorCodes EnableNonBlockingStep();
     bool TryReceivePacketNonBlocking();
 
@@ -147,4 +150,8 @@ public:
     }
 
     void AllowEnable(){ _allowEN = true; }
+
+    void SetShowInvalid(bool en) { _ShowInvalid = en; }
+
+    bool GetShowInvalid() { return _ShowInvalid; }
 };

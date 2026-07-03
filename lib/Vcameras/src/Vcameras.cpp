@@ -236,6 +236,11 @@ ErrorCodes Vcameras::Update(bool onRed, bool onRamp){
     //Determine Victim Type
     char victim = str[1];
 
+    //Show Invalid Victim as U
+    if(_ShowInvalid && victim == 'F'){
+        victim = 'U';
+    }
+
     //Check if Victim is allowed:
     if(!(victim == 'H' || victim == 'S' || victim == 'U')){
         _ui->ShowPopup("Invalid victim!", ErrorCodes::warning, 2);
