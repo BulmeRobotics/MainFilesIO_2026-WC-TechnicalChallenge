@@ -213,8 +213,7 @@ ErrorCodes Vcameras::Update(bool onRed, bool onRamp){
     _LeftEnabled = digitalRead(CAMERAL_PIN_EN);
     _RightEnabled = digitalRead(CAMERAR_PIN_EN);
 
-    //Check Alert State
-    if(_LeftEnabled || _RightEnabled) _Alert = digitalRead(CAMERA_PIN_INT);
+    ReadAlertPin();
 
     //Continue when no camera is reporting
     if(!_Alert) return ErrorCodes::OK;
@@ -266,7 +265,7 @@ ErrorCodes Vcameras::Update(bool onRed, bool onRamp){
         amount = 0;
         break;
     }
-
+    ReadAlertPin();
     //Signal Victim
     char buffer[29];
     sprintf(buffer,"VICTIM: %c, Side: %c", victim, ((side == ErrorCodes::left) ? 'L' : 'R'));
@@ -288,5 +287,6 @@ ErrorCodes Vcameras::Update(bool onRed, bool onRamp){
     //0RP - Unharmed
 
     _timeFound = millis();  //reset reset time to compensate for waiting
+    ReadAlertPin();
     return ErrorCodes::OK;
 }

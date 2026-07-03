@@ -81,7 +81,10 @@ private:
      */
     String Recieve(uint32_t waittime = 0);
 
-
+    void ReadAlertPin() {
+        //Check Alert State
+        if(_LeftEnabled || _RightEnabled) _Alert = digitalRead(CAMERA_PIN_INT);
+    }
 
     
 public:
