@@ -599,21 +599,9 @@ ErrorCodes Mapping::SetPriority(ErrorCodes priority) {
     return ErrorCodes::invalid;
 }
 
-Instructionset Mapping::GetInstruction() {
-    if (_PANIC_MODE_ACTIVE) {
-        return GetPanicInstruction();
-    }
-
-    if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
-        if (_RETURN_HOME && currentPosition == 0) {
-            return Instructionset::MazeFinished;
-        }
-
-        _BumperTriggered = false;
-
-        targetPosition = findNextTarget();
-
-        //Check for Overflow
+Instructionset Mapping::CalculatePath(uint16_t tile){
+    uint16_t targetPosition = tile;
+    //Check for Overflow
         if (targetPosition >= UINT16_MAX)
             return Instructionset::Overflow;
 
@@ -817,6 +805,21 @@ Instructionset Mapping::GetInstruction() {
             _panicConfidence = 0;
             return Instructionset::unreachable;
         }
+}
+
+Instructionset Mapping::GetInstruction() {
+    if (_PANIC_MODE_ACTIVE) {
+        return GetPanicInstruction();
+    }
+
+    if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
+        if (_RETURN_HOME && currentPosition == 0) {
+            return Instructionset::MazeFinished;
+        }
+
+        _BumperTriggered = false;
+        targetPosition = findNextTarget();
+        return CalculatePath(targetPosition);
     }
     else {
         pathIndex += 1;
@@ -824,6 +827,11 @@ Instructionset Mapping::GetInstruction() {
     }
     //In case of error
     return Instructionset::undefined;
+}
+
+Instructionset Mapping::NavigateTo(int16_t x, int16_t y, int16_t z){
+    uint16_t tile = findTileByCoordinate(x,y,z);
+    return CalculatePath(tile);
 }
 
 void Mapping::Reset(void) {

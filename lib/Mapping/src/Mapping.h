@@ -90,6 +90,8 @@ private:    // --- PRIVATE ---
      */
     uint16_t findTileByCoordinate(int16_t x, int16_t y, int16_t z);
 
+    Instructionset CalculatePath(uint16_t tile);
+
     void initLists(uint16_t target);
 
     /**
@@ -174,6 +176,8 @@ public: // --- PUBLIC ---
      * @return returns the next Instruction
      */
     Instructionset GetInstruction();
+
+    Instructionset NavigateTo(int16_t x, int16_t y, int16_t z = 0);
 
     /**
      * @brief Informs Mapping of current Tile
