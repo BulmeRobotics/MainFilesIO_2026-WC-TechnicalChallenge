@@ -1050,14 +1050,14 @@ void UserInterface::Update(){
                     if(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) newLayer = ErrorCodes::multi;
                     p_mapping->SetSettings(newLayer, p_mapping->GetSetting(ErrorCodes::ramp));
                     SaveSettings();
-                btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "single" : "multi");
+                    btnLayerSetting.Draw(display,(p_mapping->GetSetting(ErrorCodes::layer) == ErrorCodes::single) ? "single" : "multi");
                 }
 
                 if(btnVictimSetting.IsPressed(tx,ty)){
                     Signal(ErrorCodes::BUZZER, 5,0,1);
                     p_camera->SetShowInvalid(!p_camera->GetShowInvalid());
                     SaveSettings();
-                btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
+                    btnVictimSetting.Draw   (display, (p_camera->GetShowInvalid() ? "Show" : "Hide"));
                 }
 
                 if(btnRampSetting.IsPressed(tx,ty)){
