@@ -25,6 +25,7 @@
 // #define RAMP_TEST_MODE       // Uncomment to test ramp detection (loops IsRampThere front+back; pair with DEBUG_RAMP)
 #define RAMP_DEADEND_RECOVERY   // Comment out to disable reversing off wall-terminated up-ramps + marking the entrance black
 #define RAMP_ABORT_SHORT        // Comment out to disable aborting spurious too-short ramps (e.g. a bumper knock) without FinishRamp/Align
+#define SPLIT_180_TURN          // Comment out to restore a single continuous 180° turn (see SPLIT_180_DWELL_MS)
 
 #ifdef _MSC_VER
   #pragma endregion Defines
@@ -83,6 +84,18 @@ uint32_t lastButtonPressGray;
 uint32_t ts_lastCycle;
 uint32_t ts_camAlertStart;
 
+#ifdef SPLIT_180_TURN
+// A 180° turn is split into two 90° turns with a full stop at the midpoint so the
+// cameras get a clean stationary frame of the side walls before completing the turn.
+static constexpr uint16_t SPLIT_180_DWELL_MS = 300;   // midpoint hold time; tune on hardware
+
+// Sub-phase of a turn. SINGLE covers every non-split turn (≤ 90°); the others sequence a split 180°.
+enum class TurnPhase : uint8_t { SINGLE, TO_INTERMEDIATE, DWELL, TO_FINAL };
+TurnPhase    turnPhase = TurnPhase::SINGLE;
+Orientations splitFinalTarget = Orientations::North;   // final heading, held while turning to the intermediate
+uint32_t     ts_splitDwellStart = 0;
+#endif
+
 //----Flags----
 bool _ROBOT_TURNING = false;
 ErrorCodes _CHECKPOINT = ErrorCodes::OK;
@@ -96,6 +109,7 @@ ErrorCodes _CHECKPOINT = ErrorCodes::OK;
 void cyclicMainTask();
 void cyclicRunTask();
 void ExecTileBehavior(TileAction action);
+void startRobotTurn(Orientations target);
 
 void ISR_BTN_BLACK();
 void ISR_BTN_GRAY();
@@ -290,43 +304,19 @@ while (true) {
       switch (mapper.GetInstruction()) 
       {
       case Instructionset::T_North:
-      //Turn North Logic
-        robot.EndDrive();
-				robot.StartAdjustment();
-				currentRunState = RunState::TURN;
-				robot.SetRobotTargetAngle(Orientations::North);
-        robot.StartTurn(gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle()));
-				_ROBOT_TURNING = true;
+				startRobotTurn(Orientations::North);
         break;
 
       case Instructionset::T_East:
-        //Turn East Logic
-				robot.EndDrive();
-				robot.StartAdjustment();
-				currentRunState = RunState::TURN;
-				robot.SetRobotTargetAngle(Orientations::East);
-        robot.StartTurn(gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle()));
-				_ROBOT_TURNING = true;
+				startRobotTurn(Orientations::East);
         break;
 
       case Instructionset::T_South:
-        //Turn South Logic
-				robot.EndDrive();
-				robot.StartAdjustment();
-				currentRunState = RunState::TURN;
-				robot.SetRobotTargetAngle(Orientations::South);
-        robot.StartTurn(gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle()));
-				_ROBOT_TURNING = true;
+				startRobotTurn(Orientations::South);
         break;
 
       case Instructionset::T_West:
-        //Turn West Logic
-				robot.EndDrive();
-				robot.StartAdjustment();
-				currentRunState = RunState::TURN;
-				robot.SetRobotTargetAngle(Orientations::West);
-        robot.StartTurn(gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle()));
-				_ROBOT_TURNING = true;
+				startRobotTurn(Orientations::West);
         break;
 
       case Instructionset::D_Forward:
@@ -392,10 +382,36 @@ while (true) {
     
     else if (currentRunState == RunState::TURN) {
       //Turn Logic
+#ifdef SPLIT_180_TURN
+      if (turnPhase == TurnPhase::DWELL) {
+        // Midpoint hold: motors already stopped by ControlTurn; cyclicRunTask keeps the
+        // cameras updating so they get a clean stationary frame before the second 90°.
+        if (millis() - ts_splitDwellStart >= SPLIT_180_DWELL_MS) {
+          robot.SetRobotTargetAngle(splitFinalTarget);
+          robot.StartTurn(gyro.GetAngleFromOrientation(splitFinalTarget));
+          turnPhase = TurnPhase::TO_FINAL;
+        }
+      }
+      else
+#endif
       if (robot.ControlTurn(gyro.GetAngleFromOrientation(robot.GetRobotTargetAngle())) == ErrorCodes::TURNED) {
-        robot.EndTurn();
-        _ROBOT_TURNING = false;
-				currentRunState = RunState::SETTILE;
+#ifdef SPLIT_180_TURN
+        if (turnPhase == TurnPhase::TO_INTERMEDIATE) {
+          // Reached the intermediate heading; hold still, but do NOT EndTurn — no wall-align
+          // or map-orientation update until the true final heading is reached.
+          ts_splitDwellStart = millis();
+          turnPhase = TurnPhase::DWELL;
+        }
+        else
+#endif
+        {
+          robot.EndTurn();
+          _ROBOT_TURNING = false;
+				  currentRunState = RunState::SETTILE;
+#ifdef SPLIT_180_TURN
+          turnPhase = TurnPhase::SINGLE;
+#endif
+        }
       }
     }
     
@@ -647,6 +663,34 @@ void ExecTileBehavior(TileAction action){
     default:
     break;
   }
+}
+
+// Kicks off a turn toward an absolute cardinal target and switches to RunState::TURN.
+// With SPLIT_180_TURN enabled, a 180° turn is split into two 90° turns: the robot first
+// turns to the intermediate (clockwise +90°) cardinal, holds at the midpoint for the
+// cameras, then completes the turn to the final target (sequenced in the TURN state).
+void startRobotTurn(Orientations target) {
+  robot.EndDrive();
+  robot.StartAdjustment();
+  currentRunState = RunState::TURN;
+  _ROBOT_TURNING = true;
+
+#ifdef SPLIT_180_TURN
+  Orientations current = robot.GetRobotTargetAngle();
+  bool isTurn180 = (((uint8_t)current + 2) % 4) == (uint8_t)target;
+  if (isTurn180) {
+    splitFinalTarget = target;
+    Orientations intermediate = (Orientations)(((uint8_t)current + 1) % 4);   // clockwise +90°
+    robot.SetRobotTargetAngle(intermediate);
+    robot.StartTurn(gyro.GetAngleFromOrientation(intermediate));
+    turnPhase = TurnPhase::TO_INTERMEDIATE;
+    return;
+  }
+  turnPhase = TurnPhase::SINGLE;
+#endif
+
+  robot.SetRobotTargetAngle(target);
+  robot.StartTurn(gyro.GetAngleFromOrientation(target));
 }
 
 
