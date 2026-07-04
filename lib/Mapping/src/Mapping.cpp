@@ -246,14 +246,6 @@ ErrorCodes Mapping::Move(bool direction) {
         helpOrientation = static_cast<Orientations>(temp);
     }
 
-    // --- PANIC MODE INTERCEPT ---
-    // Roboter bewegt sich physisch, also Kandidaten virtuell mitschieben.
-    if (_PANIC_MODE_ACTIVE) {
-        MovePanicCandidates(helpOrientation);
-        _panicHasMoved = true;
-        return ErrorCodes::OK; // Verhindert Aktualisierung der ungültigen currentPosition
-    }
-
     switch (helpOrientation) {
     case Orientations::North:
         nextTile = tiles[currentPosition].north;
@@ -446,12 +438,6 @@ ErrorCodes Mapping::SetTile(uint8_t walls, TileType floor) {
     // previous tile, so any checkpoint staged there is genuine — commit it now.
     CommitPendingCheckpoint();
 
-    if(_PANIC_MODE_ACTIVE){
-        _currentPanicWalls = absWalls;
-        UpdateRelocalization(absWalls);
-        return ErrorCodes::OK;
-    }
-
     // Stage (do not yet commit) a checkpoint detected on THIS tile. It is committed at the next
     // SetTile, or discarded by RollbackOne if a down-ramp rolls this tile back (lip false-positive).
     if (floor == TileType::checkpoint) {
@@ -474,14 +460,8 @@ ErrorCodes Mapping::SetTile(uint8_t walls, TileType floor) {
 
     //Floor + Cost according to floor
     tiles[currentPosition].type = floor;
-    if (floor == TileType::black) {
+    if (floor == TileType::dangerZone) {
         tiles[currentPosition].weight = 255;
-    }
-    else if (floor == TileType::blue) {
-        tiles[currentPosition].weight = COST_BLUE;
-    }
-    else if (floor == TileType::dangerZone) {
-        tiles[currentPosition].weight = COST_DANGER_ZONE;
     }
     else if (floor == TileType::obstacle) {
         tiles[currentPosition].weight = COST_OBSTACLE;
@@ -799,19 +779,11 @@ Instructionset Mapping::CalculatePath(uint16_t tile){
         }
         else {
             // Target not reachable - return error
-            _PANIC_MODE_ACTIVE = true;
-            _panicHasMoved = false; 
-            _panicCandidateCount = 0;
-            _panicConfidence = 0;
             return Instructionset::unreachable;
         }
 }
 
 Instructionset Mapping::GetInstruction() {
-    if (_PANIC_MODE_ACTIVE) {
-        return GetPanicInstruction();
-    }
-
     if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
         if (_RETURN_HOME && currentPosition == 0) {
             return Instructionset::MazeFinished;
@@ -852,7 +824,6 @@ void Mapping::Reset(void) {
     resetCounter = 0;
     lastCheckpointPosition = currentPosition;
     memcpy(backupTiles, tiles, sizeof(tiles));
-    _PANIC_MODE_ACTIVE = false;
 }
 
 // void Mapping::PrintInternalMap() {
@@ -958,7 +929,6 @@ ErrorCodes Mapping::Bumper(bool reset) {
 }
 
 ErrorCodes Mapping::RestartCheckpoint() {
-    _PANIC_MODE_ACTIVE = false;
     // 1. Saubere Karte und Position aus dem Backup wiederherstellen
     memcpy(tiles, backupTiles, sizeof(tiles));
     currentPosition = lastCheckpointPosition;
@@ -978,161 +948,9 @@ ErrorCodes Mapping::RestartCheckpoint() {
     return ErrorCodes::OK;
 }
 
-ErrorCodes Mapping::SetVictim(){
-    //Check if even valid tile Type
-    if(!(tiles[currentPosition].type == TileType::visited || tiles[currentPosition].type == TileType::unexplored)) return ErrorCodes::invalid;
-
+ErrorCodes Mapping::SetVictim(TileType type){
     //Check if already found
-    if (tiles[currentPosition].victim) return ErrorCodes::already_found;
-    tiles[currentPosition].victim = true;
+    if (tiles[currentPosition].victim != TileType::inactive) return ErrorCodes::already_found;
+    tiles[currentPosition].victim = type;
     return ErrorCodes::OK;
-}
-
-#ifdef _MSC_VER
-#pragma region Panic Mode
-#endif
-
-// ====================================================================
-// PANIC MODE & LOKALISIERUNG
-// ====================================================================
-
-bool Mapping::DoesTileMatchWalls(uint16_t tileIndex, uint8_t absWalls) {
-    // Ungültige oder unerforschte Felder verwerfen
-    if(tiles[tileIndex].type == TileType::inactive || tiles[tileIndex].type == TileType::unexplored) return false;
-
-    auto checkBit = [&](uint8_t b)->bool { return (absWalls & (1U << b)) != 0U; };
-
-    // Da unerforschte Richtungen bereits auf -1 stehen, entspricht -1 exakt einer physischen Wand.
-    bool b_north = (tiles[tileIndex].north == -1);
-    bool b_east  = (tiles[tileIndex].east == -1);
-    bool b_south = (tiles[tileIndex].south == -1);
-    bool b_west  = (tiles[tileIndex].west == -1);
-
-    if (b_north != checkBit(0)) return false;
-    if (b_east  != checkBit(1)) return false;
-    if (b_south != checkBit(2)) return false;
-    if (b_west  != checkBit(3)) return false;
-
-    return true;
-}
-
-void Mapping::UpdateRelocalization(uint8_t absWalls) {
-    if (_panicConfidence == 0) {
-        // Initialer Zustand: Lade alle passenden Felder der Karte als Kandidaten
-        _panicCandidateCount = 0;
-        for (uint16_t i = 0; i < MAX_TILES; i++) {
-            if (DoesTileMatchWalls(i, absWalls)) {
-                _panicCandidates[_panicCandidateCount++] = i;
-            }
-        }
-        if (_panicCandidateCount > 0) {
-            _panicConfidence = 1;
-            _panicHasMoved = false; // Zurücksetzen für den nächsten Move
-        }
-    } else {
-        // Filtere die Liste, falls wir uns bewegt haben
-        uint16_t newCount = 0;
-        for (uint16_t i = 0; i < _panicCandidateCount; i++) {
-            if (DoesTileMatchWalls(_panicCandidates[i], absWalls)) {
-                _panicCandidates[newCount++] = _panicCandidates[i];
-            }
-        }
-        _panicCandidateCount = newCount;
-
-        if (_panicCandidateCount > 0) {
-            // Konfidenz nur erhöhen, wenn wir physisch ein Feld gewechselt haben (nicht beim reinen Drehen)
-            if (_panicHasMoved) {
-                if (_panicConfidence < 255) _panicConfidence++;
-                _panicHasMoved = false;
-            }
-        } else {
-            // Kompletter Verlust der Kandidaten -> Sensorglitch oder unvollständige Karte. Neustart.
-            _panicConfidence = 0;
-            UpdateRelocalization(absWalls); // Rekursiver Aufruf für direkten Neustart
-            return;
-        }
-    }
-
-    // Abschlussprüfung: Relokalisierung erfolgreich?
-    if (_panicConfidence >= RELOCALIZE_REQUIRED_MATCHES && _panicCandidateCount == 1) {
-        currentPosition = _panicCandidates[0];
-        _PANIC_MODE_ACTIVE = false;
-        _panicConfidence = 0;
-        pathIndex = 0; // A* Path zurücksetzen
-        //Signal to UI!!
-    }
-}
-
-void Mapping::MovePanicCandidates(Orientations dir) {
-    if (!_PANIC_MODE_ACTIVE || _panicCandidateCount == 0) return;
-
-    uint16_t newCount = 0;
-    for (uint16_t i = 0; i < _panicCandidateCount; i++) {
-        uint16_t cand = _panicCandidates[i];
-        int16_t nextCand = -1;
-
-        switch (dir) {
-            case Orientations::North: nextCand = tiles[cand].north; break;
-            case Orientations::East:  nextCand = tiles[cand].east;  break;
-            case Orientations::South: nextCand = tiles[cand].south; break;
-            case Orientations::West:  nextCand = tiles[cand].west;  break;
-        }
-
-        if (nextCand != -1 && tiles[nextCand].type != TileType::inactive) {
-            _panicCandidates[newCount++] = nextCand;
-        }
-    }
-    _panicCandidateCount = newCount;
-
-    // Wenn keine Kandidaten den Move machen konnten, reset
-    if (_panicCandidateCount == 0) _panicConfidence = 0; 
-}
-
-Instructionset Mapping::GetPanicInstruction() {
-    auto isBlocked = [&](Orientations dir) -> bool {
-        uint8_t bit = 0;
-        switch(dir) {
-            case Orientations::North: bit = 0; break;
-            case Orientations::East:  bit = 1; break;
-            case Orientations::South: bit = 2; break;
-            case Orientations::West:  bit = 3; break;
-        }
-        return (_currentPanicWalls & (1 << bit)) != 0;
-    };
-
-    Orientations leftDir  = static_cast<Orientations>((static_cast<uint8_t>(currentOrientation) + 3) % 4);
-    Orientations rightDir = static_cast<Orientations>((static_cast<uint8_t>(currentOrientation) + 1) % 4);
-    Orientations backDir  = static_cast<Orientations>((static_cast<uint8_t>(currentOrientation) + 2) % 4);
-
-    // 1. Priorität: Geradeaus
-    if (!isBlocked(currentOrientation)) {
-        return Instructionset::D_Forward;
-    }
-    // 2. Priorität: Links abbiegen
-    else if (!isBlocked(leftDir)) {
-        switch(leftDir) {
-            case Orientations::North: return Instructionset::T_North;
-            case Orientations::East:  return Instructionset::T_East;
-            case Orientations::South: return Instructionset::T_South;
-            case Orientations::West:  return Instructionset::T_West;
-        }
-    }
-    // 3. Priorität: Rechts abbiegen
-    else if (!isBlocked(rightDir)) {
-        switch(rightDir) {
-            case Orientations::North: return Instructionset::T_North;
-            case Orientations::East:  return Instructionset::T_East;
-            case Orientations::South: return Instructionset::T_South;
-            case Orientations::West:  return Instructionset::T_West;
-        }
-    }
-    // 4. Priorität: Umdrehen (Sackgasse)
-    switch(backDir) {
-        case Orientations::North: return Instructionset::T_North;
-        case Orientations::East:  return Instructionset::T_East;
-        case Orientations::South: return Instructionset::T_South;
-        case Orientations::West:  return Instructionset::T_West;
-    }
-
-    return Instructionset::undefined;
 }
