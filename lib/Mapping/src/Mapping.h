@@ -269,7 +269,10 @@ public: // --- PUBLIC ---
 
 
     //Calculate RTescue Packs at end Of Run
-    uint16_t GetRescuePacks() { return 0; }
+    uint16_t GetRescuePacks() {
+        
+        return 0;
+    }
 };
 
 #endif
