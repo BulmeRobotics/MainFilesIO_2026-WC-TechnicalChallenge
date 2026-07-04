@@ -84,6 +84,11 @@ uint32_t lastButtonPressGray;
 uint32_t ts_lastCycle;
 uint32_t ts_camAlertStart;
 
+// Stop on every tile: full stop + settle window so the middle color sensor latches a
+// stationary reading before the tile is scanned (stopless driving would coast through
+// the scan). The 250 ms is a test-settle value — trim on hardware to the sensor's needs.
+static constexpr uint16_t STOP_SCAN_SETTLE_MS = 250;
+
 #ifdef SPLIT_180_TURN
 // A 180° turn is split into two 90° turns with a full stop at the midpoint so the
 // cameras get a clean stationary frame of the side walls before completing the turn.
@@ -289,6 +294,14 @@ while (true) {
     if (_CHECKPOINT == ErrorCodes::stop) currentRunState = RunState::CHECKPOINT_RESET;
 
     if (currentRunState == RunState::SETTILE) {
+      // Stop on every tile so the middle color sensor reads the tile while stationary.
+      robot.EndDrive();
+      uint32_t ts_settle = millis();
+      while (millis() - ts_settle < STOP_SCAN_SETTLE_MS) {
+        cs.Update();  // pump the non-blocking sensor so it latches a fresh stationary frame
+        UI.Update();
+      }
+
       UI.Signal(ErrorCodes::BUZZER, 5, 0, 1);
 			mapper.SetTile(tof.GetWalls(), cs.GetFloor());
 
