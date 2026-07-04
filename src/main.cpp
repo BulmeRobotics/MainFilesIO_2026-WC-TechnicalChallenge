@@ -356,7 +356,7 @@ while (true) {
           //6s statisch ein
           UI.Signal(ErrorCodes::BUZZER_LED, 1000, 0, 1);
           UI.Update();
-          UI.Signal(ErrorCodes::LED, 5000, 0, 5);
+          UI.Signal(ErrorCodes::LED, 5000, 0, 1);
 
         } else if(start > other){
           UI.ShowPopup("Start Tile", ErrorCodes::info, 5);
