@@ -143,11 +143,11 @@ int main(void) {
   if (eeprom.Init() != ErrorCodes::OK) UI.AddInfoMsg("EEPROM", "ERROR", false);
   else {
     UI.AddInfoMsg("EEPROM", "OK", true);
-    ErrorCodes savedLayer, savedRamp;
-    bool savedShowInvalid;
-    eeprom.ReadUiSettings(savedLayer, savedRamp, savedShowInvalid);
-    mapper.SetSettings(savedLayer, savedRamp);
-    cam.SetShowInvalid(savedShowInvalid);
+    // Competition config is forced every boot regardless of the persisted EEPROM values:
+    // layers = single, ramps = off (disabled), invalid victims = hidden. The UI settings
+    // menu can still change these live, but they revert to this on the next power-on.
+    mapper.SetSettings(ErrorCodes::single, ErrorCodes::disabled);
+    cam.SetShowInvalid(false);
   }
 
   UI.ConnectPointer(&currentMenuState, &cs, &mapper, &cam, &ejector, &eeprom);
