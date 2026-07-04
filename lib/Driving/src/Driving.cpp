@@ -317,7 +317,7 @@ uint16_t Driving::CalculateNextTargetDistance(void) {
 		if (sensor.front > 410) return sensor.front - 300;
 		else return 110;
 	else
-		return 320;
+		return 310;
 }
 
 ErrorCodes Driving::ControlDrive(int8_t driveSpeed, float angle) {
