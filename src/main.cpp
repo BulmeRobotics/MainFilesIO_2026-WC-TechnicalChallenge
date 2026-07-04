@@ -384,22 +384,8 @@ while (true) {
         break;
 
       case Instructionset::MazeFinished:{
-        //Maze Finished Logic
-        //Check for Silver Tile
-        uint8_t start = 0, other = 0;
 
-        for (int i = 0; i < 3; i++){
-          TileType FloorBuff = cs.GetFloorBlocking();
-          if(FloorBuff == TileType::checkpoint) start++;
-          else other++;
-        }
-
-        if(start > other){
-          currentRunState = RunState::END;
-        } else {
-          mapper._NOT_HOME = true;
-          currentRunState = RunState::GET_INSTRUCTIONS;
-        }
+        currentRunState = RunState::END;
         
         break;
       }
