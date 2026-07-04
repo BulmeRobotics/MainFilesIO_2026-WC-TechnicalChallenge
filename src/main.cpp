@@ -171,6 +171,10 @@ int main(void) {
   else
     UI.AddInfoMsg("TOF", "ERROR", true);
 
+  // Ramps are off for this course (see forced config above): disable ToF ramp detection entirely
+  // so IsRampThere never fires in GetWalls (wall scan) or drive reference selection.
+  tof.EnableRampDetection(false);
+
   //----Gyro----
   if (gyro.Init() == ErrorCodes::OK)
     UI.AddInfoMsg("Gyro", "OK", true);

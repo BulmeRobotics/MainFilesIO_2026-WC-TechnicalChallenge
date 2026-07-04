@@ -323,6 +323,7 @@ class TofSensors {
         TofVL53L4CD backWall   = TofVL53L4CD(I2C_ADDRESS_MBW, XSHUT_PIN_MBW);
         
         bool _UPDATE_ENABLED = true;
+        bool _RAMP_DETECTION_ENABLED = true;	// when false, IsRampThere always returns false (ramps off)
 
         //----Methods----
         void DisableAll(void);
@@ -421,6 +422,14 @@ class TofSensors {
         *         false if no ramp is detected or either sensor is out of range.
         */
         bool IsRampThere(bool side);
+
+        /**
+        * @brief  Enables or disables ToF ramp detection. When disabled, IsRampThere always
+        *         returns false, so every consumer (GetWalls, drive reference selection) behaves
+        *         as if no ramp is ever present. Use on flat/no-ramp courses.
+        * @param  enable  true = detect ramps (default); false = ramp detection does nothing.
+        */
+        void EnableRampDetection(bool enable) { _RAMP_DETECTION_ENABLED = enable; }
 };
 #ifdef _MSC_VER
     #pragma endregion

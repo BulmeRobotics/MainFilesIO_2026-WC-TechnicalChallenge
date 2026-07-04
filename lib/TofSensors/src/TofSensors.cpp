@@ -591,6 +591,9 @@ uint8_t TofSensors::GetWalls(void) {
 }
 
 bool TofSensors::IsRampThere(bool side) {
+	// Ramp detection off (flat course): report no ramp to every consumer.
+	if (!_RAMP_DETECTION_ENABLED) return false;
+
 	uint16_t upper = side ? back.GetRange()     : front.GetRange();
 	uint16_t lower = side ? backWall.GetRange() : frontWall.GetRange();
 	// Per-side cap: only ranges where the drive would reference absolutely (front <=410, back <=250)
