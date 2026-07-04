@@ -396,9 +396,10 @@ while (true) {
 
         if(start > other){
           currentRunState = RunState::END;
+        } else {
+          mapper._NOT_HOME = true;
+          currentRunState = RunState::GET_INSTRUCTIONS;
         }
-        mapper._NOT_HOME = true;
-        currentRunState = RunState::GET_INSTRUCTIONS;
         
         break;
       
