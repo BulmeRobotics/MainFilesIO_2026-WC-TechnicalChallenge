@@ -360,7 +360,11 @@ while (true) {
 
         } else if(start > other){
           UI.ShowPopup("Start Tile", ErrorCodes::info, 5);
-          //mapper.SetStart();
+          mapper.SetStart();
+          if (mapper.IsReturningHome()) {
+              currentRunState = RunState::END;
+              break;
+          }
         }
 
         cs.EnableRead(true);

@@ -146,6 +146,10 @@ uint16_t Mapping::findNextTarget() {
         break;
     }
 
+    if (_SEARCH_SILVER) {
+        bufferTargetIndex = UINT16_MAX; // Force BFS to find nearest unchecked tile
+    }
+
 	if (bufferTargetIndex == UINT16_MAX) {  //no unexplored neighboring tile found, search for any unexplored tile in memory
         if(_debugPort) _debugPort->println("BFS Search");
         //BFS-Search for nearest target
@@ -164,7 +168,10 @@ uint16_t Mapping::findNextTarget() {
             // Haben wir ein unerforschtes Feld erreicht? -> Wir sind fertig!
             // Da sich die BFS wie eine Welle ausbreitet, ist das ERSTE gefundene
             // Feld garantiert das mit dem kürzesten echten Fahrweg.
-            if (tiles[current].type == TileType::unexplored) {
+            if (tiles[current].type == TileType::unexplored ||
+                (_SEARCH_SILVER && tiles[current].type != TileType::inactive && 
+                 tiles[current].type != TileType::black && tiles[current].type != TileType::obstacle && 
+                 !_silverChecked[current])) {
                 bufferTargetIndex = current;
                 break; // Schleife abbrechen, Ziel gefunden!
             }
@@ -586,8 +593,16 @@ Instructionset Mapping::CalculatePath(uint16_t tile){
 
 Instructionset Mapping::GetInstruction() {
     if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
-        if (_RETURN_HOME && currentPosition == 0) {
+        if ((_RETURN_HOME || _SEARCH_SILVER) && tiles[currentPosition].type == TileType::checkpoint) {
             return Instructionset::MazeFinished;
+        }
+
+        if (_SEARCH_SILVER) {
+            _silverChecked[currentPosition] = true;
+        }
+
+        if (_RETURN_HOME && currentPosition == 0 && tiles[currentPosition].type != TileType::checkpoint) {
+            ResetForSilverSearch();
         }
 
         _BumperTriggered = false;
@@ -822,8 +837,17 @@ void Mapping::Reset(void) {
     currentOrientation = Orientations::North;
 
     resetCounter = 0;
+    _SEARCH_SILVER = false;
+    memset(_silverChecked, false, sizeof(_silverChecked));
     lastCheckpointPosition = currentPosition;
     memcpy(backupTiles, tiles, sizeof(tiles));
+}
+
+void Mapping::ResetForSilverSearch(void) {
+    _RETURN_HOME = false;
+    _SEARCH_SILVER = true;
+    memset(_silverChecked, false, sizeof(_silverChecked));
+    _silverChecked[currentPosition] = true;
 }
 
 // void Mapping::PrintInternalMap() {
