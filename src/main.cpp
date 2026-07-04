@@ -607,7 +607,7 @@ void cyclicRunTask() {
 
   //Black Tile Handling
 	if(cs.GetFloor() == TileType::black) 
-		ExecTileBehavior(TileAction::IGNORE);
+		ExecTileBehavior(TileAction::REVERSE);
 
   //Drive Slower if FRONT detects change
 	if(cs.GetAlert() && !cs.Freeze())
