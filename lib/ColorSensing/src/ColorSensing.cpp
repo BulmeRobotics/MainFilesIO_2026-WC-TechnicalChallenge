@@ -267,7 +267,7 @@ PoI_Type ColorSensing::checkFront(){
         _checkpoint = false;
         
         //Check Black
-        if(colorRaw[8] > 7000)  //Danger Zone
+        if(colorRaw[8] > 6000)  //Danger Zone
             return PoI_Type::dangerZone;
         else return PoI_Type::undef;
     }
@@ -303,7 +303,7 @@ TileType ColorSensing::checkMiddle(){
     printDebugData(colorRaw, 'M');
     
     //Checkpoint
-    if((_checkpoint || !_READING) && colorRaw[7] < 38000 && colorRaw[4] > 59000) return TileType::checkpoint;
+    if(colorRaw[7] < 38000 && colorRaw[4] > 59000) return TileType::checkpoint;
 
     if(colorRaw[8] < 20000){
         return TileType::black;
