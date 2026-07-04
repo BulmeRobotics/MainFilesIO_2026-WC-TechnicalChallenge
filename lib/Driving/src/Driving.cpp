@@ -311,13 +311,13 @@ ErrorCodes Driving::StartDrive(bool rampDown) {
 uint16_t Driving::CalculateNextTargetDistance(void) {
 	// Selects the stop threshold based on active reference sensor and current readings.
 	if (sensor.type == ReferenceObj::BACK)
-		if (sensor.back > 250) return sensor.back + 300;
-		else return 320;
+		if (sensor.back > 250) return sensor.back + 310;
+		else return 340;
 	else if (sensor.type == ReferenceObj::FRONT)
 		if (sensor.front > 410) return sensor.front - 300;
 		else return 110;
 	else
-		return 310;
+		return 320;
 }
 
 ErrorCodes Driving::ControlDrive(int8_t driveSpeed, float angle) {
