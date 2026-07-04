@@ -23,9 +23,9 @@
 // #define TURN_TUNE_MODE       // Uncomment to enable alternating-90° turn PID tuning harness
 // #define DEBUG_LOOP_TIMING    // Uncomment to print per-subsystem timing in cyclicMainTask/cyclicRunTask
 // #define RAMP_TEST_MODE       // Uncomment to test ramp detection (loops IsRampThere front+back; pair with DEBUG_RAMP)
-#define RAMP_DEADEND_RECOVERY   // Comment out to disable reversing off wall-terminated up-ramps + marking the entrance black
-#define RAMP_ABORT_SHORT        // Comment out to disable aborting spurious too-short ramps (e.g. a bumper knock) without FinishRamp/Align
-#define SPLIT_180_TURN          // Comment out to restore a single continuous 180° turn (see SPLIT_180_DWELL_MS)
+// #define RAMP_DEADEND_RECOVERY   // Comment out to disable reversing off wall-terminated up-ramps + marking the entrance black
+// #define RAMP_ABORT_SHORT        // Comment out to disable aborting spurious too-short ramps (e.g. a bumper knock) without FinishRamp/Align
+// #define SPLIT_180_TURN          // Comment out to restore a single continuous 180° turn (see SPLIT_180_DWELL_MS)
 
 #ifdef _MSC_VER
   #pragma endregion Defines
