@@ -383,7 +383,7 @@ while (true) {
         robot.StartDrive(true);
         break;
 
-      case Instructionset::MazeFinished:
+      case Instructionset::MazeFinished:{
         //Maze Finished Logic
         //Check for Silver Tile
         uint8_t start = 0, other = 0;
@@ -402,7 +402,7 @@ while (true) {
         }
         
         break;
-      
+      }
       default:
         delay(1);
         break;
