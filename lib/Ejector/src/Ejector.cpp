@@ -116,6 +116,38 @@ ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
 	return ErrorCodes::invalid;
 }
 
+uint8_t Ejector::EjectServo(ErrorCodes side, uint8_t amount) {
+	if (amount == 0) return 0;
+
+	uint8_t rLeft  = remainingPacks >> 4;
+	uint8_t rRight = remainingPacks & 0x0f;
+
+	if (side == ErrorCodes::left) {
+		uint8_t drop = min(amount, rLeft);
+		for (uint8_t i = 0; i < drop; i++) {
+			servoLeft.write(POS_OPEN_LEFT);
+			delay(DELAY_OPEN);
+			servoLeft.write(POS_CLOSED_LEFT);
+			delay(DELAY_CLOSE);
+		}
+		rLeft -= drop;
+		remainingPacks = (rLeft << 4) | (rRight & 0x0f);
+		return drop;
+	} else if (side == ErrorCodes::right) {
+		uint8_t drop = min(amount, rRight);
+		for (uint8_t i = 0; i < drop; i++) {
+			servoRight.write(POS_OPEN_RIGHT);
+			delay(DELAY_OPEN);
+			servoRight.write(POS_CLOSED_RIGHT);
+			delay(DELAY_CLOSE);
+		}
+		rRight -= drop;
+		remainingPacks = (rLeft << 4) | (rRight & 0x0f);
+		return drop;
+	}
+	return 0;
+}
+
 uint8_t Ejector::GetRemaining(ErrorCodes side) {
 	return (side == ErrorCodes::left) ? (remainingPacks >> 4) : (remainingPacks & 0x0F);
 }

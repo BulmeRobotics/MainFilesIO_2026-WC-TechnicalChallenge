@@ -110,6 +110,7 @@ void cyclicMainTask();
 void cyclicRunTask();
 void ExecTileBehavior(TileAction action);
 void startRobotTurn(Orientations target);
+void dropRescueKits(uint16_t requested);
 
 void ISR_BTN_BLACK();
 void ISR_BTN_GRAY();
@@ -548,9 +549,8 @@ while (true) {
       UI.Update();
       UI.ShowFlag();
 
-      //Emit rescue Packs
-      uint16_t rescuePacks = mapper.GetRescuePacks();
-      ejector.Eject(rescuePacks);
+      //Emit rescue Packs against a wall
+      dropRescueKits(mapper.GetRescuePacks());
 
       //Signal End of Run 
       UI.Signal(ErrorCodes::BUZZER_LED, 1000,1000,2);
@@ -731,6 +731,35 @@ void startRobotTurn(Orientations target) {
 
   robot.SetRobotTargetAngle(target);
   robot.StartTurn(gyro.GetAngleFromOrientation(target));
+}
+
+// Deploys up to `requested` rescue kits against a wall at the exit tile.
+// Picks the servo currently facing a wall (GetWalls: bit 1 = right, bit 3 = left)
+// and drops from it; if kits remain and the other servo still holds packs, turns
+// 180° so that servo faces the same wall (unless both sides are already walled).
+// Count is capped to the packs physically loaded. Ends turned when a 180° was used.
+void dropRescueKits(uint16_t requested) {
+  uint8_t loaded = ejector.GetRemaining(ErrorCodes::left) + ejector.GetRemaining(ErrorCodes::right);
+  uint8_t amount = (requested < loaded) ? (uint8_t)requested : loaded;
+  if (amount == 0) return;
+
+  uint8_t walls = tof.GetWalls();
+  bool wallLeft  = walls & (1 << 3);
+  bool wallRight = walls & (1 << 1);
+  bool bothWalls = wallLeft && wallRight;
+
+  // Primary = servo facing a wall; defaults to left when both or neither is walled.
+  ErrorCodes primary   = (wallRight && !wallLeft) ? ErrorCodes::right : ErrorCodes::left;
+  ErrorCodes secondary = (primary == ErrorCodes::left) ? ErrorCodes::right : ErrorCodes::left;
+
+  uint8_t dropped = ejector.EjectServo(primary, amount);
+  uint8_t remaining = amount - dropped;
+
+  if (remaining > 0 && ejector.GetRemaining(secondary) > 0) {
+    if (!bothWalls) robot.Turn180Degree();   // bring secondary servo to the same wall
+    ejector.EjectServo(secondary, remaining);
+    // No return turn — run is over, heading no longer matters.
+  }
 }
 
 

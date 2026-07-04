@@ -70,6 +70,15 @@ class Ejector {
         ErrorCodes Eject(uint8_t amount);
 
         /**
+        * @brief  Fires a single servo up to `amount` times without any turning.
+        *         Sequencing (wall selection, 180° turns) is left to the caller.
+        * @param  side   ErrorCodes: left / right — which servo to fire.
+        * @param  amount Requested kits to drop from that servo.
+        * @return Number of kits actually dropped (limited by that side's remaining).
+        */
+        uint8_t EjectServo(ErrorCodes side, uint8_t amount);
+
+        /**
         * @brief  Returns the number of remaining rescue kits for a given side.
         * @param  side ErrorCodes: left / right
         * @return Number of remaining kits on the requested side.
