@@ -206,11 +206,8 @@ ErrorCodes ColorSensing::Update(){
 }
 
 TileType ColorSensing::GetFloor(){
-    if(_FREEZE_SENSOR) return TileType::obstacle;
-    else if(colorFront == PoI_Type::black) return TileType::black;
-    TileType floor = colorMiddle;
-    if (floor == TileType::checkpoint && !_checkpoint) return TileType::visited;
-    else return floor;
+    if(colorFront == PoI_Type::dangerZone) return TileType::black;
+    return TileType::unexplored;
 }
 
 TileType ColorSensing::GetFloorBlocking(){
@@ -265,12 +262,12 @@ PoI_Type ColorSensing::checkFront(){
 
 
     // Not white
-    if( colorRaw[8] <= 13000){
+    if( colorRaw[8] <= 14000){
         _ALERT = true;
         _checkpoint = false;
         
         //Check Black
-        if(colorRaw[8] <= 2700 && colorRaw[1] <= 1200)  //pre WC: [8] 2500; [1] 1000
+        if(colorRaw[8] > 7000)  //Danger Zone
             return PoI_Type::black;
         else return PoI_Type::undef;
     }

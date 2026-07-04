@@ -332,17 +332,34 @@ while (true) {
 				startRobotTurn(Orientations::West);
         break;
 
-      case Instructionset::D_Forward:
-        //Drive Forward Logic
-        //Blue Tile:
-        if (cs.GetFloor() == TileType::blue) {
-          ExecTileBehavior(TileAction::STOP_AND_WAIT_5S);
-          //Weiterfahren
+      case Instructionset::D_Forward: {
+        //Read CS 3 times and then determine
+        uint8_t black = 0, blue = 0, start = 0, other = 0;
+
+        for (int i = 0; i < 3; i++){
+          TileType FloorBuff = cs.GetFloorBlocking();
+
+          if(FloorBuff == TileType::black) black++;
+          else if(FloorBuff == TileType::blue) blue++;
+          else if(FloorBuff == TileType::checkpoint) start++;
+          else other++;
         }
+
+        if(black > blue && black > start && black > other){
+          mapper.SetVictim(TileType::black);
+        } else if(blue > start && blue > other){
+          mapper.SetVictim(TileType::blue);
+        } else if(start > other){
+          //mapper.SetStart();
+        }
+
+        cs.EnableRead(true);
+
         currentRunState = RunState::DRIVE;
         robot.StartDrive(false);
         cam.AllowEnable();
         break;
+      }
 
       case Instructionset::ramp:
         currentRunState = RunState::DRIVE;
@@ -353,13 +370,9 @@ while (true) {
         //Maze Finished Logic
         currentRunState = RunState::END;
         break;
-
-      case Instructionset::unreachable:
-        currentRunState = RunState::GET_INSTRUCTIONS;
-        UI.ShowPopup("LOST MAPPING - PANIC MODE", ErrorCodes::ERROR, 5);
-        break;
       
       default:
+        delay(1);
         break;
       }
     } 
