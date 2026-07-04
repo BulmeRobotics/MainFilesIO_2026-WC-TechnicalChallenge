@@ -337,9 +337,9 @@ class Driving {
         static constexpr uint8_t BUMPER_RIGHT_PIN = 45;
 
         //----State defaults----
-        static constexpr uint32_t DEFAULT_MAX_DRIVE_TIME      = 5000;
-        static constexpr uint32_t SLOW_MAX_DRIVE_TIME         = 6000;  // extended drive timeout while slow-speed is active (a slow tile takes longer than 5s)
-        static constexpr uint16_t DEFAULT_MAX_ENCODER_TIME    = 3000;
+        static constexpr uint32_t DEFAULT_MAX_DRIVE_TIME      = 7000;
+        static constexpr uint32_t SLOW_MAX_DRIVE_TIME         = 7000;  // extended drive timeout while slow-speed is active (a slow tile takes longer than 5s)
+        static constexpr uint16_t DEFAULT_MAX_ENCODER_TIME    = 7000;
         static constexpr uint16_t DEFAULT_MAX_TURN_TIME       = 3000;
         static constexpr uint16_t DEFAULT_RAMP_CHECK_DURATION = 1000;
         #ifdef _MSC_VER
