@@ -196,11 +196,6 @@ public: // --- PUBLIC ---
     bool IsReturningHome() { return _RETURN_HOME; }
 
     /**
-     * @brief Explicitly marks the current tile as the start (silver) tile
-     */
-    void SetStart() { tiles[currentPosition].type = TileType::checkpoint; }
-
-    /**
      * @brief gets current ramp handling
      * @return current layer setting -> single / multi
      */

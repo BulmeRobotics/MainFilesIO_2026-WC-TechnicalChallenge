@@ -586,7 +586,7 @@ Instructionset Mapping::CalculatePath(uint16_t tile){
 
 Instructionset Mapping::GetInstruction() {
     if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
-        if (_RETURN_HOME && tiles[currentPosition].type == TileType::checkpoint) {
+        if (_RETURN_HOME && currentPosition == 0) {
             return Instructionset::MazeFinished;
         }
 

@@ -361,13 +361,6 @@ while (true) {
           } else{
             UI.ShowPopup("already Signaled", ErrorCodes::info, 5);
           }
-        } else if(start > other){
-          UI.ShowPopup("Start Tile", ErrorCodes::info, 5);
-          mapper.SetStart();
-          if (mapper.IsReturningHome()) {
-              currentRunState = RunState::END;
-              break;
-          }
         }
 
         cs.EnableRead(true);
@@ -384,9 +377,7 @@ while (true) {
         break;
 
       case Instructionset::MazeFinished:{
-
         currentRunState = RunState::END;
-        
         break;
       }
       default:
