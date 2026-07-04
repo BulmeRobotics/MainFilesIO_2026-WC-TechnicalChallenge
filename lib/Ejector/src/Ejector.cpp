@@ -38,6 +38,15 @@ void Ejector::Init(Driving* robot) {
     #pragma endregion
     #pragma region Eject //------------------------------------------------------------------------------------------------------
 #endif
+
+ErrorCodes Ejector::Eject(uint8_t amount){
+	uint8_t leftAmount = 6;
+	if (amount < 6) leftAmount = amount;
+	Eject(ErrorCodes::left, leftAmount);
+	Eject(ErrorCodes::right, amount - leftAmount);
+	return ErrorCodes::OK;
+}
+
 ErrorCodes Ejector::Eject(ErrorCodes side, uint8_t amount) {
     Driving* robot = p_driving;
 	if(amount == 0) return ErrorCodes::OK;

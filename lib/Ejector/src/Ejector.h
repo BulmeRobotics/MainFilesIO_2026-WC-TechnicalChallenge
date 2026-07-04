@@ -67,6 +67,8 @@ class Ejector {
         */
         ErrorCodes Eject(ErrorCodes side, uint8_t amount);
 
+        ErrorCodes Eject(uint8_t amount);
+
         /**
         * @brief  Returns the number of remaining rescue kits for a given side.
         * @param  side ErrorCodes: left / right

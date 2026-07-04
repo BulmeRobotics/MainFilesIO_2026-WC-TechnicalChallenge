@@ -61,7 +61,7 @@
 UserInterface UI(100); // Update Interval: 100ms
 BLE_UART ble;
 EEPROM eeprom;
-ColorSensing cs/*(&ble)*/;
+ColorSensing cs(&ble);
 GyroBNO055 gyro;
 Ejector ejector;
 TofSensors tof;
@@ -204,8 +204,8 @@ int main(void) {
   UI.AddInfoMsg("Ejectors", "OK", true);
 
   //----Camera----
-  if(cam.Init(&ejector, &mapper, &robot, &UI, &drivetrain) != ErrorCodes::OK) UI.AddInfoMsg("Cameras", "CONN ERROR", false);
-  else {UI.AddInfoMsg("Cameras", "OK", true);}
+  //if(cam.Init(&ejector, &mapper, &robot, &UI, &drivetrain) != ErrorCodes::OK) UI.AddInfoMsg("Cameras", "CONN ERROR", false);
+  //else {UI.AddInfoMsg("Cameras", "OK", true);}
 
   UI.AddInfoMsg("Finished STARTUP", "ACK", false);
 
@@ -512,6 +512,11 @@ while (true) {
       currentMenuState = RobotState::ABOUT;
       UI.Update();
       UI.ShowFlag();
+
+      //Emit rescue Packs
+      uint16_t rescuePacks = mapper.GetRescuePacks();
+      ejector.Eject(rescuePacks);
+
       //Signal End of Run 
       UI.Signal(ErrorCodes::BUZZER_LED, 1000,1000,2);
       UI.Signal(ErrorCodes::LED, 1000,1000, 3);
@@ -576,7 +581,7 @@ void cyclicRunTask() {
 
   //Black Tile Handling
 	if(cs.GetFloor() == TileType::black) 
-		ExecTileBehavior(TileAction::REVERSE);
+		ExecTileBehavior(TileAction::IGNORE);
 
   //Drive Slower if FRONT detects change
 	if(cs.GetAlert() && !cs.Freeze())
