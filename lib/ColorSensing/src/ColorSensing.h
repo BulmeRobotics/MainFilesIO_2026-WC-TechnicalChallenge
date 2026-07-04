@@ -176,6 +176,8 @@ class ColorSensing{
         static constexpr uint8_t RED    = 3;
         static constexpr uint8_t SILVER = 4;
 
+        uint16_t oldCh6 = 0;
+
         rawColor frontColorsCalibrated[5];
         rawColor middleColorsCalibrated[5]; 
 

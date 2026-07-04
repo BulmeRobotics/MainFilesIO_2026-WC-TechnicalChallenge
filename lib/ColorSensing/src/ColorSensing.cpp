@@ -259,24 +259,18 @@ PoI_Type ColorSensing::checkFront(){
 
     // Silver Tile
     //UpdateHistory(colorRaw[4], colorRaw[5], colorRaw[6]);
-
+    uint16_t buffOld = oldCh6;
+    oldCh6 = colorRaw[6];
 
     // Not white
-    if( colorRaw[8] <= 14000){
+    if( colorRaw[8] <= 13000){
         _ALERT = true;
         _checkpoint = false;
         
         //Check Black
-        if(colorRaw[8] > 6000 && colorRaw[6] > 4000)  //Danger Zone
+        if(colorRaw[8] > 6000 && colorRaw[6] > 4000 && buffOld > 4000)  //Danger Zone
             return PoI_Type::dangerZone;
         else return PoI_Type::undef;
-    }
-
-    //Silver - checkpoint
-    if(colorRaw[4] > 8500 && colorRaw[7] < 5700){
-        _checkpoint = true;
-        _ALERT = true;
-        return PoI_Type::checkpoint;
     }
 
     _checkpoint = false;
