@@ -284,7 +284,7 @@ void UserInterface::UpdateRunMenu() {
 
     // -- Update Mapping States --
     display.setCursor(MAP_AREA_WIDTH + 15, 370);
-    bool curPanicModeActive = p_mapping->IsPanicMode();
+    bool curPanicModeActive = false;
     if(curPanicModeActive != _lastPanicModeActive){
         if(curPanicModeActive){
             display.setTextColor(0xF800, HL_COLOR);

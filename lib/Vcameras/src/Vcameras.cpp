@@ -248,11 +248,11 @@ ErrorCodes Vcameras::Update(bool onRed, bool onRamp){
     }
 
     //Mapping call
-    ErrorCodes err = _mapper->SetVictim();
-    if(err != ErrorCodes::OK) {
+    //ErrorCodes err = _mapper->SetVictim();
+    /*if(err != ErrorCodes::OK) {
         if(err == ErrorCodes::already_found) _ui->ShowPopup("Victim alr found",ErrorCodes::warning);
         return err;
-    }
+    }*/
 
     //Stops robot
     _drivetrain->Stop();

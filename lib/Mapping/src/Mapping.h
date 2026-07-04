@@ -270,8 +270,12 @@ public: // --- PUBLIC ---
 
     //Calculate RTescue Packs at end Of Run
     uint16_t GetRescuePacks() {
-        
-        return 0;
+        uint16_t Packs = 0;
+        for (uint16_t c = 0; c < MAX_TILES; c++){
+            if(tiles[c].victim == TileType::black) Packs += 2;
+            else if(tiles[c].victim == TileType::blue) Packs += 1;
+        }
+        return Packs;
     }
 };
 
