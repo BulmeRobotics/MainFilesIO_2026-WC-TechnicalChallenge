@@ -601,7 +601,7 @@ Instructionset Mapping::GetInstruction() {
             _silverChecked[currentPosition] = true;
         }
 
-        if (_RETURN_HOME && currentPosition == 0 && tiles[currentPosition].type != TileType::checkpoint) {
+        if (_RETURN_HOME && currentPosition == 0 && _NOT_HOME) {
             ResetForSilverSearch();
         }
 

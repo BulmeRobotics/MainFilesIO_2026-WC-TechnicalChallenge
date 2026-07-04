@@ -142,6 +142,8 @@ private:    // --- PRIVATE ---
 
 public: // --- PUBLIC ---
 
+
+bool _NOT_HOME = false;
 #ifdef _MSC_VER
 #pragma region Information
 #endif

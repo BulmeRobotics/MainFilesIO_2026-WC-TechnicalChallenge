@@ -361,8 +361,6 @@ while (true) {
           } else{
             UI.ShowPopup("already Signaled", ErrorCodes::info, 5);
           }
-          
-
         } else if(start > other){
           UI.ShowPopup("Start Tile", ErrorCodes::info, 5);
           mapper.SetStart();
@@ -388,9 +386,20 @@ while (true) {
       case Instructionset::MazeFinished:
         //Maze Finished Logic
         //Check for Silver Tile
-        
+        uint8_t start = 0, other = 0;
 
-        currentRunState = RunState::END;
+        for (int i = 0; i < 3; i++){
+          TileType FloorBuff = cs.GetFloorBlocking();
+          if(FloorBuff == TileType::checkpoint) start++;
+          else other++;
+        }
+
+        if(start > other){
+          currentRunState = RunState::END;
+        }
+        mapper._NOT_HOME = true;
+        currentRunState = RunState::GET_INSTRUCTIONS;
+        
         break;
       
       default:
