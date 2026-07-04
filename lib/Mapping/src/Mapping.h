@@ -98,11 +98,6 @@ private:    // --- PRIVATE ---
      */
     void CommitPendingCheckpoint(void);
 
-    /**
-     * @brief Resets visited tiles to unexplored to trigger a circling search for the silver tile
-     */
-    void ResetForSilverSearch(void);
-
 #ifdef _MSC_VER
 #pragma region private vars
 #endif
@@ -132,8 +127,6 @@ private:    // --- PRIVATE ---
     // -- Config --
     ErrorCodes pathPriority = ErrorCodes::straight;
     bool _RETURN_HOME = false;
-    bool _SEARCH_SILVER = false;
-    bool _silverChecked[MAX_TILES];
     ErrorCodes _layerSetting = ErrorCodes::single;
     ErrorCodes _rampSetting = ErrorCodes::multi;
 
@@ -143,7 +136,6 @@ private:    // --- PRIVATE ---
 public: // --- PUBLIC ---
 
 
-bool _NOT_HOME = false;
 #ifdef _MSC_VER
 #pragma region Information
 #endif
@@ -198,10 +190,10 @@ bool _NOT_HOME = false;
     }
 
     /**
-     * @brief Checks if the maze is fully explored and the robot is returning home (or searching for silver tile)
-     * @return true if returning home or searching for silver tile
+     * @brief Checks if the maze is fully explored and the robot is returning home
+     * @return true if returning home
      */
-    bool IsReturningHome() { return _RETURN_HOME || _SEARCH_SILVER; }
+    bool IsReturningHome() { return _RETURN_HOME; }
 
     /**
      * @brief Explicitly marks the current tile as the start (silver) tile
