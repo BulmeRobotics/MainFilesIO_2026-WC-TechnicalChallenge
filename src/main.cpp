@@ -356,9 +356,10 @@ while (true) {
             UI.ShowPopup("Victim Blue", ErrorCodes::info, 5);
 
             //6s statisch ein
-            UI.Signal(ErrorCodes::BUZZER_LED, 1000, 0, 1);
+            UI.Signal(ErrorCodes::BUZZER,5,0,1);
+            delay(95);
             UI.Update();
-            UI.Signal(ErrorCodes::LED, 5000, 0, 1);
+            UI.Signal(ErrorCodes::LED, 6000, 0, 1);
           } else{
             UI.ShowPopup("already Signaled", ErrorCodes::info, 5);
           }
