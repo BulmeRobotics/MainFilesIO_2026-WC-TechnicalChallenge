@@ -347,9 +347,25 @@ while (true) {
 
         if(black > blue && black > start && black > other){
           mapper.SetVictim(TileType::black);
+
+          UI.ShowPopup("Victim Black", ErrorCodes::info, 5);
+
+          //
+          UI.Signal(ErrorCodes::BUZZER_LED, 500,500, 1);
+          UI.Update();
+          UI.Signal(ErrorCodes::LED, 500, 500, 5);
+
         } else if(blue > start && blue > other){
           mapper.SetVictim(TileType::blue);
+          UI.ShowPopup("Victim Blue", ErrorCodes::info, 5);
+
+          //6s statisch ein
+          UI.Signal(ErrorCodes::BUZZER_LED, 1000, 0, 1);
+          UI.Update();
+          UI.Signal(ErrorCodes::LED, 5000, 0, 5);
+
         } else if(start > other){
+          UI.ShowPopup("Start Tile", ErrorCodes::info, 5);
           //mapper.SetStart();
         }
 

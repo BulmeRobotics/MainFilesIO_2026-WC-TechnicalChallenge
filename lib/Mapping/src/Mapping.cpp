@@ -581,7 +581,18 @@ ErrorCodes Mapping::SetPriority(ErrorCodes priority) {
 
 Instructionset Mapping::CalculatePath(uint16_t tile){
     uint16_t targetPosition = tile;
-    //Check for Overflow
+    
+}
+
+Instructionset Mapping::GetInstruction() {
+    if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
+        if (_RETURN_HOME && currentPosition == 0) {
+            return Instructionset::MazeFinished;
+        }
+
+        _BumperTriggered = false;
+        targetPosition = findNextTarget();
+        //Check for Overflow
         if (targetPosition >= UINT16_MAX)
             return Instructionset::Overflow;
 
@@ -781,17 +792,6 @@ Instructionset Mapping::CalculatePath(uint16_t tile){
             // Target not reachable - return error
             return Instructionset::unreachable;
         }
-}
-
-Instructionset Mapping::GetInstruction() {
-    if (_BumperTriggered || path[pathIndex] == Instructionset::FinishedInstructions) {
-        if (_RETURN_HOME && currentPosition == 0) {
-            return Instructionset::MazeFinished;
-        }
-
-        _BumperTriggered = false;
-        targetPosition = findNextTarget();
-        return CalculatePath(targetPosition);
     }
     else {
         pathIndex += 1;

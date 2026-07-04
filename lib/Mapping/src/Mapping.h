@@ -33,7 +33,7 @@ enum class Instructionset : uint8_t {
 };
 
 struct Tile {
-    int16_t x, y, z = 0;
+    int16_t x = 0, y = 0, z = 0;
     uint8_t weight = 1;
     uint8_t difficulty = 0;
     TileType type = TileType::inactive;
@@ -50,13 +50,8 @@ struct OpenItem {
 
 class Mapping {
 private:    // --- PRIVATE ---
-
-
-
     //Debug
     Stream* _debugPort;
-
-
 #ifdef _MSC_VER
 #pragma region helpers
 #endif
