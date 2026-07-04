@@ -305,12 +305,13 @@ TileType ColorSensing::checkMiddle(){
     //Checkpoint
     if((_checkpoint || !_READING) && colorRaw[7] < 38000 && colorRaw[4] > 59000) return TileType::checkpoint;
 
-    //Blau:
-    if(colorRaw[8] < 40000){
-        return TileType::blue;
-    } else if(colorRaw[8] < 61000){
-        return TileType::dangerZone;
+    if(colorRaw[8] < 20000){
+        return TileType::black;
     }
+    //Blau:
+    if(colorRaw[8] < 50000){
+        return TileType::blue;
+    } 
     return TileType::visited; //TODO: Implement actual color checking
 }
 
