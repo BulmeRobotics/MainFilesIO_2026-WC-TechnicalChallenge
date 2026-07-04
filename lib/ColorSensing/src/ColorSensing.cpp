@@ -268,7 +268,7 @@ PoI_Type ColorSensing::checkFront(){
         
         //Check Black
         if(colorRaw[8] > 7000)  //Danger Zone
-            return PoI_Type::black;
+            return PoI_Type::dangerZone;
         else return PoI_Type::undef;
     }
 
