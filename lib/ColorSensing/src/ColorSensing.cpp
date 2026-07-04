@@ -207,7 +207,7 @@ ErrorCodes ColorSensing::Update(){
 
 TileType ColorSensing::GetFloor(){
     if(colorFront == PoI_Type::dangerZone) return TileType::black;
-    return TileType::unexplored;
+    return TileType::visited;
 }
 
 TileType ColorSensing::GetFloorBlocking(){
